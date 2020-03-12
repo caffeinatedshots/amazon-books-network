@@ -5,7 +5,7 @@ import random
 import plotly.graph_objs as go
 import dash_core_components as dcc
 
-raw_df = pandas.read_csv("../data/CombinedData.csv")
+raw_df = pandas.DataFrame([{'a' : 1, 'b' : 2}])
 
 def generate_df_columns(dataframe = raw_df):
 	return list(dataframe.columns)

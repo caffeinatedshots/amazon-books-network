@@ -5,49 +5,34 @@ from dash.dependencies import Input, Output
 
 import charts
 import statistics
-import analytics
+import genre
 
 from app import app
 
 app.title = "Amazon Books Network Analysis"
 
 app.layout = html.Div(children=[
-    html.Header(id = "header", children = [
-        html.Div(className = "inner", children = [
-            html.A("Amazon Books Network Analysis", className = "logo"),
-            html.Nav(className = "nav", children = [
-                html.A("Statistics", href = "/"),
-                html.A("Analytics", href = "/analytics")
-            ])
-        ])
-    ]),
-
-    html.Section(id = "banner", children = [
-        html.Div(className = "inner", children = [
-            html.Header(children = [
-                html.H1(id = "common_title")
-            ]),
-            html.Div(className = "flex", children = [
-                html.Div(children = [
-                    html.Span(className = "icon fa-globe"),
-                    html.H3(len(charts.generate_unique_countries())),
-                    html.P("Countries")
+    html.Div(className = "header-top-area", children = [
+        html.Div(className = 'container', children = [
+            html.Div(className = 'row', children = [
+                html.Div(className = 'col-lg-6 col-md-6 col-sm-12 col-xs-12', children = [
+                    html.Div(className = "logo-area", children = [
+                        html.A(href = '/', children = [
+                            html.Img(src = 'assets/img/logo/logo.png')
+                        ])
+                    ])
                 ]),
-                html.Div(children = [
-                    html.Span(className = "icon fa-building"),
-                    html.H3(len(charts.generate_unique_cities())),
-                    html.P("Cities")
-                ]),
-                html.Div(children = [
-                    html.Span(className = "icon fa-industry"),
-                    html.H3(len(charts.generate_unique_retailers())),
-                    html.P("Retailers")
-                ]),
-                html.Div(children = [
-                    html.Span(className = "icon fa-home"),
-                    html.H3(len(charts.generate_unique_stores())),
-                    html.P("Stores")
-                 ])
+                html.Div(className = 'col-lg-6 col-md-6 col-sm-12 col-xs-12', children = [
+                    html.Div(className = "header-top-menu", children = [
+                        html.Ul(className = "nav navbar-nav notika-top-nav", children = [
+                            html.Li(className = 'nav-item', children = [
+                                html.A(className = 'nav-link', href = "/genre", title = "Genre", children = [
+                                    html.I(className = 'fa fa-book')
+                                ])
+                            ])
+                        ])
+                    ])
+                ])
             ])
         ])
     ]),
@@ -63,11 +48,11 @@ def show_content(page):
         page = "/"
     path_map = {
         "/" : statistics.content,
-        "/analytics" : analytics.content
+        "/genre" : genre.content
     }
     title_map = {
         "/" : "Statistics",
-        "/analytics" : "Analytics"
+        "/genre" : "Genre"
     }
     return [path_map[page], title_map[page]]
 
