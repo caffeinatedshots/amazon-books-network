@@ -1,9 +1,51 @@
+import os
+
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+import plotly.graph_objects as go
 
-import charts
+from charts import *
+from network import *
+from helpers import *
 from app import app
+
+
+data_df = read_node_df(os.getcwd()+'/data/nodes.csv', 'int')
+
+content = html.Section(
+    children = [
+        html.Div([
+            html.H2("At a Glance", className="align-center"),
+            dcc.Graph(
+                id = 'sales_indicator',
+                figure = get_generic_insights(data_df),
+                config = {"displayModeBar" : False}
+            ),
+            get_stats_table(data_df)
+        ])
+    ]
+)
+
+@app.callback(
+    Output('stats_table', 'data'),
+    [Input('stats_table', 'filter_query')]
+)
+def update_table(filter):
+    filtering_expressions = filter.split(' && ')
+    dff = data_df
+    for filter_part in filtering_expressions:
+        col_name, operator, filter_value = split_filter_part(filter_part)
+
+        if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
+            # these operators match pandas series operator method names
+            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+        elif operator == 'contains':
+            dff = dff.loc[dff[col_name].str.contains(filter_value)]
+        elif operator == 'datestartswith':
+            dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+
+    return dff.to_dict('records')
 
 # content = html.Section(children = [
 #             html.Div(className = "inner", children = [
@@ -164,43 +206,43 @@ from app import app
 #             ])
 #         ])
 
-content = html.H2("Statistics")
+# content = html.H2("Statistics")
 
-@app.callback(
-    [Output('qty_over_time', 'figure'),
-    Output('qty_rev_per_quarter', 'figure'),
-    Output('qty_by_flash_cat_over_time', 'figure'),
-    Output('qty_by_country_over_time', 'figure'),
-    Output('qty_by_country_retailer', 'figure'),
-    Output('rev_by_country_retailer', 'figure'),
-    Output('qty_by_country_map', 'figure'),
-    Output('rev_by_country_map', 'figure'),
-    Output('qty_by_flashcat_productcat', 'figure'),
-    Output('rev_by_flashcat_productcat', 'figure'),
-    Output('qty_by_country_flashcat_heatmap', 'figure'),
-    Output('rev_by_country_flashcat_heatmap', 'figure')],
-    [Input('country_filter', 'value'),
-    Input('flash_cat_filter', 'value'),
-    Input('product_cat_filter', 'value'),
-    Input('year_filter', 'value')])
-def filter_performance_charts(Country, FlashCategory, ProductCategory, FiscalYear):
-    updated_figures = [
-        charts.global_update("qty_over_time", locals()),
-        charts.global_update("qty_rev_per_quarter", locals()),
-        charts.global_update("qty_by_flash_cat_over_time", locals()),
-        charts.global_update("qty_by_country_over_time", locals()),
-        charts.global_update("qty_by_country_retailer", locals()),
-        charts.global_update("rev_by_country_retailer", locals()),
-        charts.global_update("qty_by_country_map", locals()),
-        charts.global_update("rev_by_country_map", locals()),
-        charts.global_update("qty_by_flashcat_productcat", locals()),
-        charts.global_update("rev_by_flashcat_productcat", locals()),
-        charts.global_update("qty_by_country_flashcat_heatmap", locals()),
-        charts.global_update("rev_by_country_flashcat_heatmap", locals())]
-    return updated_figures
+# @app.callback(
+#     [Output('qty_over_time', 'figure'),
+#     Output('qty_rev_per_quarter', 'figure'),
+#     Output('qty_by_flash_cat_over_time', 'figure'),
+#     Output('qty_by_country_over_time', 'figure'),
+#     Output('qty_by_country_retailer', 'figure'),
+#     Output('rev_by_country_retailer', 'figure'),
+#     Output('qty_by_country_map', 'figure'),
+#     Output('rev_by_country_map', 'figure'),
+#     Output('qty_by_flashcat_productcat', 'figure'),
+#     Output('rev_by_flashcat_productcat', 'figure'),
+#     Output('qty_by_country_flashcat_heatmap', 'figure'),
+#     Output('rev_by_country_flashcat_heatmap', 'figure')],
+#     [Input('country_filter', 'value'),
+#     Input('flash_cat_filter', 'value'),
+#     Input('product_cat_filter', 'value'),
+#     Input('year_filter', 'value')])
+# def filter_performance_charts(Country, FlashCategory, ProductCategory, FiscalYear):
+#     updated_figures = [
+#         charts.global_update("qty_over_time", locals()),
+#         charts.global_update("qty_rev_per_quarter", locals()),
+#         charts.global_update("qty_by_flash_cat_over_time", locals()),
+#         charts.global_update("qty_by_country_over_time", locals()),
+#         charts.global_update("qty_by_country_retailer", locals()),
+#         charts.global_update("rev_by_country_retailer", locals()),
+#         charts.global_update("qty_by_country_map", locals()),
+#         charts.global_update("rev_by_country_map", locals()),
+#         charts.global_update("qty_by_flashcat_productcat", locals()),
+#         charts.global_update("rev_by_flashcat_productcat", locals()),
+#         charts.global_update("qty_by_country_flashcat_heatmap", locals()),
+#         charts.global_update("rev_by_country_flashcat_heatmap", locals())]
+#     return updated_figures
 
-@app.callback(
-    Output('sales_indicator', 'figure'),
-    [Input('interval_component', 'n_intervals')])
-def generate_sales_notification(n):
-    return charts.generate_sales_indicator(n_intervals = n)
+# @app.callback(
+#     Output('sales_indicator', 'figure'),
+#     [Input('interval_component', 'n_intervals')])
+# def generate_sales_notification(n):
+#     return charts.generate_sales_indicator(n_intervals = n)

@@ -1,11 +1,139 @@
-import pandas
+import pandas as pd
 import calendar
 import numpy as np
 import random
 import plotly.graph_objs as go
+import dash_table
 import dash_core_components as dcc
 
-raw_df = pandas.DataFrame([{'a' : 1, 'b' : 2}])
+
+def get_generic_insights(data_df:pd.DataFrame):
+	most_common_genre = data_df['genre'].mode()[0]
+	
+	min_pages = data_df['num_pages'].min()
+	max_pages = data_df['num_pages'].max()
+	avg_pages = data_df['num_pages'].mean()
+
+	min_price = data_df['price'].min()
+	max_price = data_df['price'].max()
+	avg_price = data_df['price'].mean()
+	
+	min_reviews = data_df['num_reviews'].min()
+	max_reviews = data_df['num_reviews'].max()
+	avg_reviews = round(data_df['num_reviews'].mean())
+	
+	avg_rating = round(data_df['avg_rating'].mean())
+	
+
+	figure = {
+		'data' : [
+			go.Indicator(
+			    domain = {'x': [0, 0.33], 'y': [0.5, 1]},
+				value = avg_pages,
+				mode = "gauge+number",
+				title = {'text': "(Min, Max, Avg) Pages"},
+				gauge = {
+					'axis': {'range': [min_pages, max_pages]},
+					'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': max_pages}
+				}
+			),
+			go.Indicator(
+			    domain = {'x': [0.33, 0.66], 'y': [0.5, 1]},
+				value = avg_price,
+				mode = "gauge+number",
+				number = {'prefix': "$"},
+				title = {'text': "(Min, Max, Avg) Prices"},
+				gauge = {
+					'axis': {'range': [min_price, max_price]},
+					'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': max_price}
+				}
+			),
+			go.Indicator(
+			    domain = {'x': [0.66, 1], 'y': [0.5, 1]},
+				value = avg_reviews,
+				mode = "gauge+number",
+				title = {'text': "(Min, Max, Avg) Reviews"},
+				gauge = {
+					'axis': {'range': [min_reviews, max_reviews]},
+					'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': max_reviews}
+				}
+			),
+			go.Indicator(
+			    domain = {'x': [0.5, 1], 'y': [0, 0.3]},
+				value = avg_rating,
+				mode = "number",
+				title = {'text': "Avg Rating"},
+				gauge = {
+					'axis': {'range': [0, 5]},
+					'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 5}
+				}
+			),
+			go.Indicator(
+			    domain = {'x': [0, 0.5], 'y': [0, 0.3]},
+				value = most_common_genre,
+				mode = "number",
+				title = {'text': "Top Genre"},
+				gauge = {
+					'axis': {'range': [0, 5]},
+					'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': 5}
+				}
+			)
+		],
+		'layout' : {
+			"margin" : {"l": 0, "r" : 0, "t" : 50, "b" : 50}
+		}
+	}
+	return figure
+
+
+def get_stats_table(data_df: pd.DataFrame):
+	"""
+	Returns filterable table
+	"""
+	stats_table = dash_table.DataTable(
+		id = "stats_table",
+		columns = [
+			{"name": i, "id": i, "deletable": False, "selectable": True} for i in data_df
+		],
+		data = data_df.to_dict('records'),
+		filter_action="custom",
+		filter_query="",
+		sort_action="native",
+		sort_mode="multi",
+		style_as_list_view = True,
+		merge_duplicate_headers = True,
+		page_size = 20,
+		style_header = {
+			'backgroundColor': 'white',
+			'fontWeight': 'bold',
+			'textAlign' : 'center'
+		},
+		style_table = {
+			'overflowX': 'auto'
+		},
+		style_cell = {
+			"padding" : "5px",
+			"font-family" : "Source Sans Pro",
+			"fontSize" : 16,
+		},
+		style_data={
+			'height': 'auto'
+		},
+		style_data_conditional = [
+			{
+				'if': {'row_index': 'odd'},
+				'backgroundColor': 'rgb(248, 248, 248)'
+			}
+		] + [{'if': {'column_id': c},'textAlign': 'center'} for c in data_df.columns]
+		,
+		css = [
+			{"selector": ".cell-1-1", "rule": "width: 100%;"},
+			{"selector": 'td.cell--selected, td.focused', "rule": 'background-color: #6cc091 !important; color: #ffffff !important'}
+		]
+	)
+	return stats_table
+
+raw_df = pd.DataFrame([{'a' : 1, 'b' : 2}])
 
 def generate_df_columns(dataframe = raw_df):
 	return list(dataframe.columns)
@@ -57,7 +185,7 @@ def generate_sales_indicator(dataframe = raw_df, n_intervals = 0):
 	sales_over_qtr = sales_over_mth.groupby(['FiscalYear', 'FiscalQuarter']).sum()
 
 	flashcat_over_mth = raw_df.groupby(["FlashCategory", "FiscalYear", "FiscalMonthInt"])['SalesQuantity', 'Sales'].sum().reset_index().groupby("FlashCategory")['SalesQuantity', 'Sales']
-	flashcat_over_mth_comparison = pandas.DataFrame({"qty_prev": flashcat_over_mth.nth(-2)['SalesQuantity'],
+	flashcat_over_mth_comparison = pd.DataFrame({"qty_prev": flashcat_over_mth.nth(-2)['SalesQuantity'],
 													"qty_curr" : flashcat_over_mth.nth(-1)['SalesQuantity'],
 													"rev_prev": flashcat_over_mth.nth(-2)['Sales'],
 													"rev_curr" : flashcat_over_mth.nth(-1)['Sales']})
@@ -65,7 +193,7 @@ def generate_sales_indicator(dataframe = raw_df, n_intervals = 0):
 	flashcat_over_mth_comparison["rev_diff"] = (flashcat_over_mth_comparison["rev_curr"] - flashcat_over_mth_comparison["rev_prev"]) / flashcat_over_mth_comparison["rev_prev"]
 
 	country_over_mth = raw_df.groupby(["Country", "FiscalYear", "FiscalMonthInt"])['SalesQuantity', 'Sales'].sum().reset_index().groupby("Country")['SalesQuantity', 'Sales']
-	country_over_mth_comparison = pandas.DataFrame({"qty_prev": country_over_mth.nth(-2)['SalesQuantity'],
+	country_over_mth_comparison = pd.DataFrame({"qty_prev": country_over_mth.nth(-2)['SalesQuantity'],
 													"qty_curr" : country_over_mth.nth(-1)['SalesQuantity'],
 													"rev_prev": country_over_mth.nth(-2)['Sales'],
 													"rev_curr" : country_over_mth.nth(-1)['Sales']})
@@ -171,7 +299,7 @@ def generate_qty_rev_per_quarter(dataframe = raw_df):
 	return figure
 
 def generate_qty_by_country_over_time(dataframe = raw_df):
-	qty_by_country_over_time = pandas.pivot_table(dataframe, index = ["SaleDate"], columns = ["Country"], values = ["SalesQuantity"], aggfunc = np.sum)
+	qty_by_country_over_time = pd.pivot_table(dataframe, index = ["SaleDate"], columns = ["Country"], values = ["SalesQuantity"], aggfunc = np.sum)
 	figure = {
 		'data' : [
 			go.Scatter(
@@ -190,7 +318,7 @@ def generate_qty_by_country_over_time(dataframe = raw_df):
 	return figure
 
 def generate_qty_by_flash_cat_over_time(dataframe = raw_df):
-	qty_by_flash_cat_over_time = pandas.pivot_table(dataframe, index = ["SaleDate"], columns = ["FlashCategory"], values = ["SalesQuantity"], aggfunc = np.sum)
+	qty_by_flash_cat_over_time = pd.pivot_table(dataframe, index = ["SaleDate"], columns = ["FlashCategory"], values = ["SalesQuantity"], aggfunc = np.sum)
 	figure = {
 		'data' : [
 			go.Scatter(
@@ -323,7 +451,7 @@ def generate_rev_by_flashcat_productcat(dataframe = raw_df):
 	return figure
 
 def generate_qty_by_country_flashcat_heatmap(dataframe = raw_df):
-	qty_country_flashcat = pandas.pivot_table(dataframe, index = ["Country"], columns = ["FlashCategory"], values = ["SalesQuantity"], aggfunc = np.sum)
+	qty_country_flashcat = pd.pivot_table(dataframe, index = ["Country"], columns = ["FlashCategory"], values = ["SalesQuantity"], aggfunc = np.sum)
 	figure = {
 		'data' : [
 			go.Heatmap(
@@ -344,7 +472,7 @@ def generate_qty_by_country_flashcat_heatmap(dataframe = raw_df):
 	return figure
 
 def generate_rev_by_country_flashcat_heatmap(dataframe = raw_df):
-	rev_country_flashcat = pandas.pivot_table(dataframe, index = ["Country"], columns = ["FlashCategory"], values = ["Sales"], aggfunc = np.sum)
+	rev_country_flashcat = pd.pivot_table(dataframe, index = ["Country"], columns = ["FlashCategory"], values = ["Sales"], aggfunc = np.sum)
 	figure = {
 		'data' : [
 			go.Heatmap(
@@ -366,9 +494,9 @@ def generate_rev_by_country_flashcat_heatmap(dataframe = raw_df):
 
 def generate_qty_dow_by_week(dataframe = raw_df):
 	dataframe = dataframe.copy()
-	dataframe['DOW'] = pandas.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
-	dataframe['WeekNum'] = pandas.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.week
-	qty_dow_by_week = pandas.pivot_table(dataframe, index = ['DOW'], columns = ['WeekNum'], values = ['SalesQuantity'], aggfunc = np.sum)
+	dataframe['DOW'] = pd.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
+	dataframe['WeekNum'] = pd.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.week
+	qty_dow_by_week = pd.pivot_table(dataframe, index = ['DOW'], columns = ['WeekNum'], values = ['SalesQuantity'], aggfunc = np.sum)
 	qty_dow_by_week.columns = list(map(lambda x : x[1], qty_dow_by_week.columns))
 	qty_dow_by_week.index = list(map(lambda x : calendar.day_abbr[x], qty_dow_by_week.index))
 	qty_dow_by_week = qty_dow_by_week.reindex(list(calendar.day_abbr[-1:] + calendar.day_abbr[:-1])[::-1])
@@ -395,8 +523,8 @@ def generate_qty_dow_by_week(dataframe = raw_df):
 
 def generate_qty_dow_by_month(dataframe = raw_df):
 	dataframe = dataframe.copy()
-	dataframe['DOW'] = pandas.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
-	qty_dow_by_month = pandas.pivot_table(dataframe, index = ['FiscalMonth'], columns = ['DOW'], values = ['SalesQuantity'], aggfunc = np.sum)
+	dataframe['DOW'] = pd.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
+	qty_dow_by_month = pd.pivot_table(dataframe, index = ['FiscalMonth'], columns = ['DOW'], values = ['SalesQuantity'], aggfunc = np.sum)
 	qty_dow_by_month.columns = list(map(lambda x : calendar.day_abbr[x[1]], qty_dow_by_month.columns))
 	qty_dow_by_month = qty_dow_by_month[list(calendar.day_abbr[-1:] + calendar.day_abbr[:-1])]
 	qty_dow_by_month.index = list(map(lambda x : x[:3], qty_dow_by_month.index))
@@ -424,8 +552,8 @@ def generate_qty_dow_by_month(dataframe = raw_df):
 
 def generate_qty_dow_by_quarter(dataframe = raw_df):
 	dataframe = dataframe.copy()
-	dataframe['DOW'] = pandas.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
-	qty_dow_by_quarter = pandas.pivot_table(dataframe, index = ['FiscalQuarter'], columns = ['DOW'], values = ['SalesQuantity'], aggfunc = np.sum)
+	dataframe['DOW'] = pd.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
+	qty_dow_by_quarter = pd.pivot_table(dataframe, index = ['FiscalQuarter'], columns = ['DOW'], values = ['SalesQuantity'], aggfunc = np.sum)
 	qty_dow_by_quarter.columns = list(map(lambda x : calendar.day_abbr[x[1]], qty_dow_by_quarter.columns))
 	qty_dow_by_quarter = qty_dow_by_quarter[list(calendar.day_abbr[-1:] + calendar.day_abbr[:-1])]
 	qty_dow_by_quarter = qty_dow_by_quarter.reindex(sorted(qty_dow_by_quarter.index, reverse = True))
@@ -451,7 +579,7 @@ def generate_qty_dow_by_quarter(dataframe = raw_df):
 	return figure
 
 def generate_country_corr_heatmap(dataframe = raw_df):
-	country = pandas.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country'], values = ['SalesQuantity'], aggfunc = np.sum)
+	country = pd.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country'], values = ['SalesQuantity'], aggfunc = np.sum)
 	country.columns = list(map(lambda x : x[1], country.columns))
 	country_corr = country.corr(method = "spearman")
 	figure = {
@@ -476,7 +604,7 @@ def generate_country_corr_heatmap(dataframe = raw_df):
 	return figure
 
 def generate_flash_cat_corr_heatmap(dataframe = raw_df):
-	flash_cat = pandas.pivot_table(dataframe, index = ['SaleDate'], columns = ['FlashCategory'], values = ['SalesQuantity'], aggfunc = np.sum)
+	flash_cat = pd.pivot_table(dataframe, index = ['SaleDate'], columns = ['FlashCategory'], values = ['SalesQuantity'], aggfunc = np.sum)
 	flash_cat.columns = list(map(lambda x : x[1], flash_cat.columns))
 	flash_cat_corr = flash_cat.corr(method = "spearman")
 	figure = {
@@ -501,7 +629,7 @@ def generate_flash_cat_corr_heatmap(dataframe = raw_df):
 	return figure
 
 def generate_country_flash_cat_corr_heatmap(dataframe = raw_df):
-	country_flash_cat = pandas.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country', 'FlashCategory'], values = ['SalesQuantity'], aggfunc = np.sum)
+	country_flash_cat = pd.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country', 'FlashCategory'], values = ['SalesQuantity'], aggfunc = np.sum)
 	country_flash_cat.columns = list(map(lambda x : x[1] + "_" + x[2], country_flash_cat.columns))
 	country_flash_cat_corr = country_flash_cat.corr(method = "spearman")
 	figure = {
@@ -526,8 +654,8 @@ def generate_country_flash_cat_corr_heatmap(dataframe = raw_df):
 	return figure
 
 def generate_country_flashcat_distribution_histogram(dataframe = raw_df):
-	country_over_time = pandas.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country'], values = ['SalesQuantity'], aggfunc = np.sum)
-	flashcat_over_time = pandas.pivot_table(dataframe, index = ['SaleDate'], columns = ['FlashCategory'], values = ['SalesQuantity'], aggfunc = np.sum)
+	country_over_time = pd.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country'], values = ['SalesQuantity'], aggfunc = np.sum)
+	flashcat_over_time = pd.pivot_table(dataframe, index = ['SaleDate'], columns = ['FlashCategory'], values = ['SalesQuantity'], aggfunc = np.sum)
 	country_over_time.columns = list(map(lambda x : x[1], country_over_time.columns))
 	flashcat_over_time.columns = list(map(lambda x : x[1], flashcat_over_time.columns))
 	figure = {
@@ -572,7 +700,7 @@ def generate_country_flashcat_distribution_histogram(dataframe = raw_df):
 	return figure
 
 def generate_unit_sales_by_country_over_time(dataframe = raw_df):
-	sales_qty_by_country_over_time = pandas.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country'], values = ['Sales', 'SalesQuantity'], aggfunc = np.sum)
+	sales_qty_by_country_over_time = pd.pivot_table(dataframe, index = ['SaleDate'], columns = ['Country'], values = ['Sales', 'SalesQuantity'], aggfunc = np.sum)
 	unit_sales_by_country_over_time = sales_qty_by_country_over_time['Sales'] / sales_qty_by_country_over_time['SalesQuantity']
 	figure = {
 		'data' : [
@@ -592,7 +720,7 @@ def generate_unit_sales_by_country_over_time(dataframe = raw_df):
 	return figure
 
 def generate_unit_sales_by_flashcat_over_time(dataframe = raw_df):
-	sales_qty_by_flashcat_over_time = pandas.pivot_table(dataframe, index = ['SaleDate'], columns = ['FlashCategory'], values = ['Sales', 'SalesQuantity'], aggfunc = np.sum)
+	sales_qty_by_flashcat_over_time = pd.pivot_table(dataframe, index = ['SaleDate'], columns = ['FlashCategory'], values = ['Sales', 'SalesQuantity'], aggfunc = np.sum)
 	unit_sales_by_flashcat_over_time = sales_qty_by_flashcat_over_time['Sales'] / sales_qty_by_flashcat_over_time['SalesQuantity']
 	figure = {
 		'data' : [
@@ -640,7 +768,7 @@ def generate_product_segmentation_scatter(dataframe = raw_df):
 
 def generate_country_dow_flashcat_parcats(dataframe = raw_df):
 	dataframe = dataframe.copy()
-	dataframe['DOW'] = pandas.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
+	dataframe['DOW'] = pd.to_datetime(dataframe['SaleDate'], infer_datetime_format = True).dt.dayofweek
 	dataframe['DOW'] = dataframe['DOW'].apply(lambda x : calendar.day_abbr[x])
 	country_dow_flashcat = dataframe.groupby(['Country', 'DOW', 'FlashCategory'])['SalesQuantity'].sum()
 	figure = {
