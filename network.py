@@ -10,10 +10,12 @@ from itertools import permutations, groupby
 from operator import itemgetter
 import matplotlib.pyplot as plt
 
+from app import app
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
 
 cwd = os.getcwd()
 """
@@ -250,20 +252,6 @@ def generate_ego_network(G:nx.Graph, n_ranks:int):
     # print(f'Generated node_traces: {node_traces}')
     # print(f'Generated edge_traces: {edge_traces}')
 
-    if n_ranks%2 == 1:
-        rows = (n_ranks//2)+1
-        cols = 2
-    else:
-        rows = n_ranks//2
-        cols = 2
-    print(f'Calculated rows and cols: {rows}, {cols}')
-
-    subplots_fig = make_subplots(
-        rows=rows,
-        cols=cols,
-        subplot_titles=tuple([f"Plot {rank}" for rank in range(n_ranks)])
-    )
-
     plotly_figures = []
 
     for idx in range(len(node_traces)):
@@ -281,44 +269,46 @@ def generate_ego_network(G:nx.Graph, n_ranks:int):
         )
         plotly_figures.append(fig)
 
-    # This works
-    # plotly_figures = [
-    #     go.Scatter(x=[1, 2, 3], y=[4, 5, 6]),
-    #     go.Scatter(x=[20, 30, 40], y=[50, 60, 70]),
-    #     go.Scatter(x=[300, 400, 500], y=[600, 700, 800])
-    # ]
-    
-    # To fix
-    for idx in range(len(plotly_figures)):
-        row = round(idx//2) + 1
-        col = idx%2 + 1
-        print('inside')
-        print(row)
-        print(col)
-        print(plotly_figures[idx])
-
-        subplots_fig.add_trace(
-            plotly_figures[idx],
-            row=row,
-            col=col
-        )
-
-    return subplots_fig
-
+    return plotly_figures
 
 
 # Initialize NetworkX graph
 networkGraph = generate_graph()
+ego_network_count = 0
 # Generate Plotly content
 content = html.Section(
     children = [
         html.Div([
             html.H2("Network Analysis at a glance...", className="align-center"),
-            dcc.Graph(
-                id = 'ego_network',
-                figure = generate_ego_network(networkGraph, 3),
-                config = {"displayModeBar" : False}
-            ),  
+            dcc.Input(id="ego_network_count", type="number", placeholder="Top-N Ego-networks"),
+            html.Div(className = "ego_network", children=[
+                dcc.Graph(
+                    id = f'ego_network_{i}',
+                    figure = generate_ego_network(networkGraph, 3)[i],
+                    config = {"displayModeBar" : False}
+                ) for i in range(3)
+            ]),
+            # html.Div(className = "ego_network", children=[
+            #     dcc.Graph(
+            #         id = f'ego_network_{i}',
+            #         figure = generate_ego_network(networkGraph, ego_network_count)[i],
+            #         config = {"displayModeBar" : False}
+            #     ) for i in range(ego_network_count)
+            # ]),
+            # html.Div(id='output')
         ])
     ]
 )
+@app.callback(
+    Output("output", "children"),
+    [Input("ego_network_count", "value")],
+)
+def update_output(ego_network_count):
+    children = [
+        dcc.Graph(
+            id = f'ego_network_{i}',
+            figure = generate_ego_network(networkGraph, ego_network_count)[i],
+            config = {"displayModeBar" : False}
+        ) for i in range(ego_network_count)
+    ]
+    return children[0]
