@@ -6,6 +6,7 @@ from dash.dependencies import Input, Output
 import charts
 import statistics
 import genre
+import network
 
 from app import app
 
@@ -48,11 +49,13 @@ def show_content(page):
         page = "/"
     path_map = {
         "/" : statistics.content,
-        "/genre" : genre.content
+        "/genre" : genre.content,
+        "/network": network.content,
     }
     title_map = {
         "/" : "Statistics",
-        "/genre" : "Genre"
+        "/genre" : "Genre",
+        "/network": "Network",
     }
     return [path_map[page], title_map[page]]
 

@@ -1,3 +1,4 @@
+from typing import Dict
 from typing import List
 
 import os
@@ -6,6 +7,13 @@ import pandas as pd
 import networkx as nx
 from collections import defaultdict
 from itertools import permutations, groupby
+from operator import itemgetter
+import matplotlib.pyplot as plt
+
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import dash_core_components as dcc
+import dash_html_components as html
 
 cwd = os.getcwd()
 """
@@ -43,7 +51,7 @@ def generate_graph(dataset:str='amazon'):
     
     if dataset == 'amazon':
         node_df = read_node_df(cwd+'/data/nodes.csv')
-        edge_df = read_node_df(cwd+'/data/edges.csv')
+        edge_df = read_edge_df(cwd+'/data/edges.csv')
     
         # Create Nodes
         for index, row in node_df.iterrows():
@@ -68,7 +76,7 @@ def generate_graph(dataset:str='amazon'):
             edge_info = {
                 'source': row['source'],
                 'target': row['target'],
-                'weight': row['frequency']
+                'weight': row['weight']
             }
             G.add_edge(edge_info['source'], edge_info['target'], weight=edge_info['weight'])
         
@@ -105,7 +113,7 @@ def _compute_clustering_coefficients(G: nx.Graph):
 """
 Clique Analysis
 """
-def _generate_intracluster_strength(G:nx.Graph, nodes: List[int]):
+def _generate_intracluster_strength(G:nx.Graph, nodes: List[int]) -> int:
     node_pairs = [sorted(pair) for pair in permutations(nodes, 2)]
     node_pairs.sort()
     node_pairs = list(k for k,_ in groupby(node_pairs))
@@ -116,7 +124,7 @@ def _generate_intracluster_strength(G:nx.Graph, nodes: List[int]):
     
     return total_interactions/len(nodes)    
 
-def get_cliques_by_size(G:nx.Graph):
+def get_cliques_by_size(G:nx.Graph) -> Dict[str,List[int]]:
     maximal_cliques = list(nx.find_cliques(G))
     maximal_clique_sizes = [len(clique) for clique in list(nx.find_cliques(G))]
     
@@ -126,7 +134,7 @@ def get_cliques_by_size(G:nx.Graph):
     
     return maximal_cliques_dict
 
-def generate_clique_metrics(G: nx.Graph):
+def generate_clique_metrics(G: nx.Graph) -> Dict[str,List[int]]:
     maximal_cliques_dict = get_cliques_by_size(G)
     
     for k,v in maximal_cliques_dict.items():
@@ -141,3 +149,176 @@ def generate_clique_metrics(G: nx.Graph):
             clique_info['intracluster_strength'] = _generate_intracluster_strength(G, clique_info['nodes'])
     
     return maximal_cliques_dict
+
+def get_ego_network(G:nx.Graph, rank:int):
+    """
+    Returns information of nth rank ego-network.
+    ------------------------
+    ego_node: Ego node
+    hub_ego: networkx.Graph
+    pos: Dict[int, List[float, float]]
+
+    pos: Key of represents node connected to ego_node and the values are x-y coordinates.
+    """
+    node_and_degree = G.degree()
+    (ego_node, _) = sorted(node_and_degree, key=itemgetter(1))[-1*rank]
+
+    hub_ego = nx.ego_graph(G, ego_node)
+    pos = nx.spring_layout(hub_ego)
+
+    return ego_node, hub_ego, pos
+
+def get_node_edge_traces(G:nx.Graph, n_ranks:int):
+    """
+    Returns Plotly Graph objects for n ego-networks.
+    """
+    node_traces = []
+    edge_traces = []
+
+    for i in range(n_ranks):
+        temp_node_x = []
+        temp_node_y = []
+        temp_edge_x = []
+        temp_edge_y = []
+        ego_node, hub_ego, pos = get_ego_network(G, i+1) # ego_node to be used to make it red
+
+        for edge in hub_ego.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            temp_edge_x.append(x0)
+            temp_edge_x.append(x1)
+            temp_edge_x.append(None)
+            temp_edge_y.append(y0)
+            temp_edge_y.append(y1)
+            temp_edge_y.append(None)
+
+        edge_trace = go.Scatter(
+            x=temp_edge_x, y=temp_edge_y,
+            line=dict(width=0.5, color='#888'),
+            hoverinfo='none',
+            mode='lines'
+        )
+
+        for node in hub_ego.nodes():
+            x, y = pos[node]
+            temp_node_x.append(x)
+            temp_node_y.append(y)
+
+        node_trace = go.Scatter(
+            x=temp_node_x, y=temp_node_y,
+            mode='markers',
+            hoverinfo='text',
+            marker=dict(
+                showscale=True,
+                # colorscale options
+                #'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
+                #'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
+                #'Hot' | 'Blackbody' | 'Earth' | 'Electric' | 'Viridis' |
+                colorscale='YlGnBu',
+                reversescale=True,
+                color=[],
+                size=10,
+                colorbar=dict(
+                    thickness=15,
+                    title='Node Connections',
+                    xanchor='left',
+                    titleside='right'
+                ),
+                line_width=2
+            )
+        )
+
+        node_adjacencies = []
+        node_text = []
+        for node, adjacencies in enumerate(hub_ego.adjacency()):
+            node_adjacencies.append(len(adjacencies[1]))
+            node_text.append('# of connections: '+str(len(adjacencies[1])))
+
+        node_trace.marker.color = node_adjacencies
+        node_trace.text = node_text
+
+        print(f"Before insertion:\n")
+        # print(node_trace)
+        # print(edge_trace)
+        node_traces.append(node_trace)
+        edge_traces.append(edge_trace)
+
+    return node_traces, edge_traces
+
+def generate_ego_network(G:nx.Graph, n_ranks:int):
+    node_traces, edge_traces = get_node_edge_traces(G, n_ranks)
+    # print(f'Generated node_traces: {node_traces}')
+    # print(f'Generated edge_traces: {edge_traces}')
+
+    if n_ranks%2 == 1:
+        rows = (n_ranks//2)+1
+        cols = 2
+    else:
+        rows = n_ranks//2
+        cols = 2
+    print(f'Calculated rows and cols: {rows}, {cols}')
+
+    subplots_fig = make_subplots(
+        rows=rows,
+        cols=cols,
+        subplot_titles=tuple([f"Plot {rank}" for rank in range(n_ranks)])
+    )
+
+    plotly_figures = []
+
+    for idx in range(len(node_traces)):
+        fig = go.Figure(
+            data=[node_traces[idx], edge_traces[idx]],
+            layout=go.Layout(
+                title=f"<br>Network graph {idx} made with Python",
+                titlefont_size=16,
+                showlegend=False,
+                hovermode='closest',
+                margin=dict(b=20,l=5,r=5,t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+            )
+        )
+        plotly_figures.append(fig)
+
+    # This works
+    # plotly_figures = [
+    #     go.Scatter(x=[1, 2, 3], y=[4, 5, 6]),
+    #     go.Scatter(x=[20, 30, 40], y=[50, 60, 70]),
+    #     go.Scatter(x=[300, 400, 500], y=[600, 700, 800])
+    # ]
+    
+    # To fix
+    for idx in range(len(plotly_figures)):
+        row = round(idx//2) + 1
+        col = idx%2 + 1
+        print('inside')
+        print(row)
+        print(col)
+        print(plotly_figures[idx])
+
+        subplots_fig.add_trace(
+            plotly_figures[idx],
+            row=row,
+            col=col
+        )
+
+    return subplots_fig
+
+
+
+# Initialize NetworkX graph
+networkGraph = generate_graph()
+# Generate Plotly content
+content = html.Section(
+    children = [
+        html.Div([
+            html.H2("Network Analysis at a glance...", className="align-center"),
+            dcc.Graph(
+                id = 'ego_network',
+                figure = generate_ego_network(networkGraph, 3),
+                config = {"displayModeBar" : False}
+            ),  
+        ])
+    ]
+)
