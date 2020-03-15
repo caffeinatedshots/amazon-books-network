@@ -28,3 +28,20 @@ def split_filter_part(filter_part):
                 return name, operator_type[0].strip(), value
 
     return [None] * 3
+
+
+# Styling functions
+def style_title():
+    title_style = {
+        'y': 0.9,
+        'x': 0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'
+    }
+    return title_style
+
+def style_font():
+    font_style = {
+        'family': "Raleway"
+    }
+    return font_style

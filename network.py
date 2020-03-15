@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+from helpers import *
 
 cwd = os.getcwd()
 """
@@ -234,14 +235,16 @@ def get_node_edge_traces(G:nx.Graph, n_ranks:int):
         node_text = []
         for node, adjacencies in enumerate(hub_ego.adjacency()):
             node_adjacencies.append(len(adjacencies[1]))
-            node_text.append('# of connections: '+str(len(adjacencies[1])))
+            node_text.append(
+                # Append all node information here
+                f"<b>Node: {str(node)}</b><br /><b>Properties:</b><br />\
+                    # of connections: {str(len(adjacencies[1]))}\
+                "
+            )
 
         node_trace.marker.color = node_adjacencies
         node_trace.text = node_text
 
-        print(f"Before insertion:\n")
-        # print(node_trace)
-        # print(edge_trace)
         node_traces.append(node_trace)
         edge_traces.append(edge_trace)
 
@@ -249,8 +252,6 @@ def get_node_edge_traces(G:nx.Graph, n_ranks:int):
 
 def generate_ego_network(G:nx.Graph, n_ranks:int):
     node_traces, edge_traces = get_node_edge_traces(G, n_ranks)
-    # print(f'Generated node_traces: {node_traces}')
-    # print(f'Generated edge_traces: {edge_traces}')
 
     plotly_figures = []
 
@@ -258,14 +259,18 @@ def generate_ego_network(G:nx.Graph, n_ranks:int):
         fig = go.Figure(
             data=[node_traces[idx], edge_traces[idx]],
             layout=go.Layout(
-                title=f"<br>Network graph {idx} made with Python",
+                title={
+                    "text":f"<br>Rank {idx+1} Ego Network"},
                 titlefont_size=16,
                 showlegend=False,
                 hovermode='closest',
                 margin=dict(b=20,l=5,r=5,t=40),
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+                
             )
+        )
+        fig.update_layout(
+            title=style_title(),
+            font=style_font()
         )
         plotly_figures.append(fig)
 
@@ -274,36 +279,30 @@ def generate_ego_network(G:nx.Graph, n_ranks:int):
 
 # Initialize NetworkX graph
 networkGraph = generate_graph()
-ego_network_count = 0
 # Generate Plotly content
 content = html.Section(
     children = [
         html.Div([
             html.H2("Network Analysis at a glance...", className="align-center"),
-            dcc.Input(id="ego_network_count", type="number", placeholder="Top-N Ego-networks"),
-            html.Div(className = "ego_network", children=[
-                dcc.Graph(
-                    id = f'ego_network_{i}',
-                    figure = generate_ego_network(networkGraph, 3)[i],
-                    config = {"displayModeBar" : False}
-                ) for i in range(3)
-            ]),
-            # html.Div(className = "ego_network", children=[
-            #     dcc.Graph(
-            #         id = f'ego_network_{i}',
-            #         figure = generate_ego_network(networkGraph, ego_network_count)[i],
-            #         config = {"displayModeBar" : False}
-            #     ) for i in range(ego_network_count)
-            # ]),
-            # html.Div(id='output')
+            html.Div([
+                dcc.Input(id="ego_network_count", type="text", value="0", placeholder="Top-N Ego-networks"),
+            ], style = {
+                "textAlign": "center" 
+            }),
+            html.Div(id="ego_network")
         ])
     ]
 )
 @app.callback(
-    Output("output", "children"),
+    Output("ego_network", "children"),
     [Input("ego_network_count", "value")],
 )
-def update_output(ego_network_count):
+def update_ego_network(ego_network_count):
+    # To prevent callback error
+    if ego_network_count == "":
+        ego_network_count = 0
+
+    ego_network_count = int(ego_network_count)
     children = [
         dcc.Graph(
             id = f'ego_network_{i}',
@@ -311,4 +310,4 @@ def update_output(ego_network_count):
             config = {"displayModeBar" : False}
         ) for i in range(ego_network_count)
     ]
-    return children[0]
+    return children
