@@ -92,6 +92,26 @@ def generate_graph(dataset:str='amazon'):
     return G
 
 
+def _compute_articulation_points(G: nx.Graph):
+    """
+    An articulation point or cut vertex is any node whose removal (along with all its incident edges) increases the number of connected components of a graph.
+    """
+    articulation_points = list(nx.articulation_points(G))
+    
+    return articulation_points
+
+def _compute_biconnected_components_edges(G: nx.Graph):
+    """
+    Biconnected components are maximal subgraphs such that the removal of a node (and all edges incident on that node) will not disconnect the subgraph.
+    ------------------
+    Returns a list of lists of length 2: [Set, List of tuple pairs (edges)]
+    """
+    biconnected_components = list(nx.biconnected_components(G))
+    biconnected_edges = list(nx.biconnected_component_edges(G))
+    components_and_edges = [[biconnected_components[idx], biconnected_edges[idx]] for idx in range(len(biconnected_components))]
+
+    return components_and_edges
+
 def _compute_centrality_measures(G: nx.Graph):
     degree_centrality = list(nx.degree_centrality(G).values())
     betweenness_centrality = list(nx.betweenness_centrality(G).values())
