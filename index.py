@@ -30,6 +30,11 @@ app.layout = html.Div(children=[
                                 html.A(className = 'nav-link', href = "/genre", title = "Genre", children = [
                                     html.I(className = 'fa fa-book')
                                 ])
+                            ]),
+                            html.Li(className = 'nav-item', children = [
+                                html.A(className = 'nav-link', href = "/network", title = "Network", children = [
+                                    html.I(className = 'fa fa-user')
+                                ])
                             ])
                         ])
                     ])
@@ -38,7 +43,7 @@ app.layout = html.Div(children=[
         ])
     ]),
     dcc.Location(id='url', refresh=False),
-    html.Section(id = "page_content", className = "wrapper")
+    html.Section(id = "page_content", className = "container")
 ])
 
 @app.callback([Output('page_content', 'children'),
