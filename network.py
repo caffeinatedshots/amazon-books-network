@@ -112,6 +112,149 @@ def _compute_biconnected_components_edges(G: nx.Graph):
 
     return components_and_edges
 
+def _compute_correlations_traces(corr_direction: str):
+    """
+    Returns information about positive / negative correlated features
+    Checks all the edges and removes some based on corr_direction.
+    -------------------
+    direction = positive: Only returns the positive correlations and delete the edges with weight smaller than 0
+    direction = negative: Only returns the negative correlations and delete the edges with weight equal or larger than 0
+    """
+    node_df = read_node_df(cwd+'/data/nodes.csv')
+    cor_matrix = node_df.iloc[:, 1:].corr()
+    node_idx = cor_matrix.index.values
+
+    cor_matrix = np.asmatrix(cor_matrix)
+    cor_G = nx.from_numpy_matrix(cor_matrix)
+    cor_G = nx.relabel_nodes(cor_G, lambda x: node_idx[x])
+    
+    cor_G_copy = cor_G.copy()
+    for feature_1, feature_2, weight in cor_G.edges(data=True):
+        if corr_direction == "Positive":
+            if weight["weight"] < 0:
+                cor_G_copy.remove_edge(feature_1, feature_2)
+        else:
+            if weight["weight"] >= 0:
+                cor_G_copy.remove_edge(feature_1, feature_2)
+
+    # Generate circular layout positions
+    pos = nx.circular_layout(cor_G_copy)
+
+    temp_node_x = []
+    temp_node_y = []
+    temp_edge_x = []
+    temp_edge_y = []
+    for edge in cor_G_copy.edges():
+        x0, y0 = pos[edge[0]]
+        x1, y1 = pos[edge[1]]
+        temp_edge_x.append(x0)
+        temp_edge_x.append(x1)
+        temp_edge_x.append(None)
+        temp_edge_y.append(y0)
+        temp_edge_y.append(y1)
+        temp_edge_y.append(None)
+    
+    edge_trace = go.Scatter(
+        x=temp_edge_x, y=temp_edge_y,
+        line=dict(width=0.5, color='#888'),
+        mode='lines'
+    )
+    
+    for node in cor_G_copy.nodes():
+        x, y = pos[node]
+        temp_node_x.append(x)
+        temp_node_y.append(y)
+
+    node_trace = go.Scatter(
+        x=temp_node_x, y=temp_node_y,
+        mode='markers',
+        hoverinfo='text',
+        marker=dict(
+            color='#00c292',
+            size=15,
+            line_width=2
+        )
+    )
+
+    node_adjacencies = []
+    node_text = []
+    for node, adjacencies in enumerate(cor_G_copy.adjacency()):
+        node_adjacencies.append(len(adjacencies[1]))
+        node_text.append(
+            # Append all node information here
+            f"<b>{adjacencies[0]}"
+        )
+
+    edge_adjacencies = []
+    edge_text = []
+    for edge_pair in cor_G_copy.edges():
+        wanted_weights = _get_weights(cor_G_copy, edge_pair[0])
+        if edge_pair[0] != edge_pair[1]: 
+            cur_weight = wanted_weights[edge_pair[1]]['weight']
+
+            edge_adjacencies.append(cur_weight)
+            edge_text.append(
+                # Append all node information here
+                f"<b>Edge: {edge_pair}</b><br /><b>Properties:</b><br />\
+                    Weight: {cur_weight}\
+                "
+            )
+    
+    Xe=[]
+    Ye=[]
+    xt = []
+    yt = []
+    for e in cor_G_copy.edges():
+        if e[0] != e[1]:
+            mid_edge = 0.5*(pos[e[0]]+pos[e[1]])# mid point of the edge e
+            xt.append(mid_edge[0])
+            yt.append(mid_edge[1])
+            Xe.extend([pos[e[0]][0], pos[e[1]][0], None])
+            Ye.extend([pos[e[0]][1], pos[e[1]][1], None])
+    
+    trace_text = go.Scatter(
+        x=xt, y=yt, 
+        mode='text',
+        text=edge_text,
+        textposition='bottom center',
+        hoverinfo='text'
+    )
+    node_trace.text = node_text
+
+    return node_trace, edge_trace, trace_text
+
+def _get_weights(G: nx.Graph, matching_col: str):
+    adj_weights = list(G.adjacency())
+    wanted_weights = None
+    for col in adj_weights:
+        if col[0] == matching_col:
+            wanted_weights = col[1]
+    return wanted_weights
+
+def generate_correlation_network(corr_direction: str):
+    """
+    Returns Plotly Graph object for correlation network.
+    """
+    node_traces, edge_traces, trace_text = _compute_correlations_traces(corr_direction)
+
+    fig = go.Figure(
+        data=[node_traces, edge_traces, trace_text],
+        layout=go.Layout(
+            title={
+                "text":f"<b>Correlation Network ({corr_direction})</b>"},
+            titlefont_size=16,
+            showlegend=False,
+            hovermode='closest',
+            margin=dict(b=20,l=5,r=5,t=40),
+        )
+    )
+    fig.update_layout(
+        title=style_title(),
+        font=style_font()
+    )
+
+    return fig
+
 def _compute_centrality_measures(G: nx.Graph):
     degree_centrality = list(nx.degree_centrality(G).values())
     betweenness_centrality = list(nx.betweenness_centrality(G).values())
@@ -280,7 +423,7 @@ def generate_ego_network(G:nx.Graph, n_ranks:int):
             data=[node_traces[idx], edge_traces[idx]],
             layout=go.Layout(
                 title={
-                    "text":f"<br>Rank {idx+1} Ego Network"},
+                    "text":f"<b>Rank {idx+1} Ego Network</b>"},
                 titlefont_size=16,
                 showlegend=False,
                 hovermode='closest',
@@ -305,6 +448,14 @@ content = html.Section(
         html.Div([
             html.H2("Network Analysis at a glance...", className="align-center"),
             html.Div([
+                dcc.Dropdown(
+                    id="corr_dir",
+                    options=[{"label": "Positive", "value": "Positive"}, {"label": "Negative", "value": "Negative"}],
+                    value=""
+                )
+            ]),
+            html.Div(id="corr_network"),
+            html.Div([
                 dcc.Input(id="ego_network_count", type="text", value="0", placeholder="Top-N Ego-networks"),
             ], style = {
                 "textAlign": "center" 
@@ -315,7 +466,9 @@ content = html.Section(
 )
 @app.callback(
     Output("ego_network", "children"),
-    [Input("ego_network_count", "value")],
+    [
+        Input("ego_network_count", "value")
+    ],
 )
 def update_ego_network(ego_network_count):
     # To prevent callback error
@@ -329,5 +482,25 @@ def update_ego_network(ego_network_count):
             figure = generate_ego_network(networkGraph, ego_network_count)[i],
             config = {"displayModeBar" : False}
         ) for i in range(ego_network_count)
+    ]
+    return children
+
+@app.callback(
+    Output("corr_network", "children"),
+    [
+        Input("corr_dir", "value")
+    ],
+)
+def update_corr_network(corr_dir):
+    # To prevent callback error
+    if corr_dir == "":
+        corr_dir = "Positive"
+    
+    children=[
+        dcc.Graph(
+            id = 'corr_network_1',
+            figure = generate_correlation_network(corr_dir),
+            config = {"displayModeBar" : False}
+        )
     ]
     return children
