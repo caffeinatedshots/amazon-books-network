@@ -45,3 +45,14 @@ def style_font():
         'family': "Raleway"
     }
     return font_style
+
+def network_layout_options():
+    options = [
+        {'label' : 'Circular', 'value' : 'circular'},
+        {'label' : 'Kamada-Kawai', 'value' : 'kamada-kawai'},
+        {'label' : 'Random', 'value' : 'random'},
+        {'label' : 'Shell', 'value' : 'shell'},
+        {'label' : 'Spring', 'value' : 'spring'},
+        {'label' : 'Spectral', 'value' : 'spectral'}
+    ]
+    return options

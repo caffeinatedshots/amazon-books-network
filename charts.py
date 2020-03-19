@@ -389,8 +389,8 @@ def generate_graph(dataset:str='amazon'):
     G = nx.Graph()
     
     if dataset == 'amazon':
-        node_df = read_node_df(NODES_FILE)
-        edge_df = read_edge_df(EDGES_FILE)
+        node_df = NODE_DF
+        edge_df = EDGE_DF
     
         # Create Nodes
         for index, row in node_df.iterrows():
@@ -456,27 +456,37 @@ def generate_clique_metrics(G: nx.Graph) -> Dict[str,List[int]]:
 # Initialize NetworkX graph
 networkGraph = generate_graph()
 
-def plot_graph(G = networkGraph):
-	pos = nx.spring_layout(G)
+def plot_graph(G = networkGraph, params = None):
+	pos = nx.random_layout(G)
+	if params and 'chart_type_option' in params:
+		layouts = {
+			'circular' : lambda g : nx.circular_layout(g),
+			'kamada-kawai' : lambda g : nx.kamada_kawai_layout(g),
+			'random' : lambda g : nx.random_layout(g),
+			'shell' : lambda g : nx.shell_layout(g),
+			'spring' : lambda g : nx.spring_layout(g),
+			'spectral' : lambda g : nx.spectral_layout(g)
+		}
+		pos = layouts[params['chart_type_option']](G)
 
 	edge_x = []
 	edge_y = []
 
-	for edge in G.edges():
-	    x0, y0 = pos[edge[0]]
-	    x1, y1 = pos[edge[1]]
-	    edge_x.append(x0)
-	    edge_x.append(x1)
-	    edge_x.append(None)
-	    edge_y.append(y0)
-	    edge_y.append(y1)
-	    edge_y.append(None)
+	edge_traces = []
 
-	edge_trace = go.Scatter(
-	    x=edge_x, y=edge_y,
-	    line=dict(width=0.5, color='#888'),
-	    hoverinfo='none',
-	    mode='lines')
+	for edge in G.edges(data = True):
+		start, end, data = edge
+		x0, y0 = pos[start]
+		x1, y1 = pos[end]
+
+		edge_trace = go.Scatter(
+			x=[x0, x1, None], y=[y0, y1, None],
+			line=dict(width=np.log(data['weight']), color='#888'),
+			hoverinfo='none',
+			mode='lines'
+		)
+		edge_traces.append(edge_trace)
+	
 
 	node_x = []
 	node_y = []
@@ -490,7 +500,7 @@ def plot_graph(G = networkGraph):
 	    mode='markers',
 	    hoverinfo='text',
 	    marker=dict(
-	        showscale=True,
+	        showscale=False,
 	        # colorscale options
 	        #'Greys' | 'YlGnBu' | 'Greens' | 'YlOrRd' | 'Bluered' | 'RdBu' |
 	        #'Reds' | 'Blues' | 'Picnic' | 'Rainbow' | 'Portland' | 'Jet' |
@@ -499,12 +509,6 @@ def plot_graph(G = networkGraph):
 	        reversescale=True,
 	        color=[],
 	        size=10,
-	        colorbar=dict(
-	            thickness=15,
-	            title='Node Connections',
-	            xanchor='left',
-	            titleside='right'
-	        ),
 	        line_width=2))
 
 	node_adjacencies = []
@@ -516,13 +520,18 @@ def plot_graph(G = networkGraph):
 	node_trace.marker.color = node_adjacencies
 	node_trace.text = node_text
 
-	fig = go.Figure(data=[edge_trace, node_trace],
+	fig = go.Figure(data=edge_traces + [node_trace],
              layout=go.Layout(
-                title={
-                    "text":f"<b>Network</b>"},
-                titlefont_size=16,
                 showlegend=False,
                 hovermode='closest',
+                xaxis = {
+                	'visible' : False
+                },
+                yaxis = {
+                	'visible' : False
+                },
+				paper_bgcolor='rgba(0,0,0,0)',
+				plot_bgcolor='rgba(0,0,0,0)',
                 margin=dict(b=20,l=5,r=5,t=40),
                 
             )

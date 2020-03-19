@@ -5,14 +5,14 @@ from dash.dependencies import Input, Output
 
 import charts
 import statistics
-import genre
+import visualise
 import network
 
 from app import app
 
 app.title = "Amazon Books Network Analysis"
 
-app.layout = html.Div(children=[
+app.layout = html.Div(style = {"background" : "#f6f8fa"}, children=[
     html.Div(className = "header-top-area", children = [
         html.Div(className = 'container', children = [
             html.Div(className = 'row', children = [
@@ -27,8 +27,8 @@ app.layout = html.Div(children=[
                     html.Div(className = "header-top-menu", children = [
                         html.Ul(className = "nav navbar-nav notika-top-nav", children = [
                             html.Li(className = 'nav-item', children = [
-                                html.A(className = 'nav-link', href = "/genre", title = "Genre", children = [
-                                    html.I(className = 'fa fa-book')
+                                html.A(className = 'nav-link', href = "/visualise", title = "Visualise", children = [
+                                    html.I(className = 'fa fa-bar-chart')
                                 ])
                             ]),
                             html.Li(className = 'nav-item', children = [
@@ -46,23 +46,17 @@ app.layout = html.Div(children=[
     html.Section(id = "page_content", className = "container")
 ])
 
-@app.callback([Output('page_content', 'children'),
-                Output('common_title', 'children')],
+@app.callback([Output('page_content', 'children')],
               [Input('url', 'pathname')])
 def show_content(page):
     if page == None:
         page = "/"
     path_map = {
         "/" : statistics.content,
-        "/genre" : genre.content,
+        "/visualise" : visualise.content,
         "/network": network.content,
     }
-    title_map = {
-        "/" : "Statistics",
-        "/genre" : "Genre",
-        "/network": "Network",
-    }
-    return [path_map[page], title_map[page]]
+    return [path_map[page]]
 
 
 if __name__ == "__main__":
