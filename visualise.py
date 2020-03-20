@@ -33,7 +33,6 @@ content = [
                     dcc.Dropdown(
                         id="genre_filter",
                         options= helpers.generate_options(charts.get_unique_genres()),
-                        value="spring",
                         multi = True,
                         clearable = False
                     )
@@ -45,7 +44,6 @@ content = [
                     dcc.Dropdown(
                         id="sales_rank_filter",
                         options=helpers.generate_options(charts.get_sales_rank_categories()),
-                        value="spring",
                         multi = True,
                         clearable = False,
                     )
@@ -57,7 +55,6 @@ content = [
                     dcc.Dropdown(
                         id="rating_filter",
                         options=helpers.generate_options(charts.get_unique_ratings()),
-                        value="4.5",
                         multi = True,
                         clearable = False
                     )
@@ -69,7 +66,6 @@ content = [
                     dcc.Dropdown(
                         id="reviews_filter",
                         options=helpers.generate_options(charts.get_review_categories()),
-                        value="spring",
                         multi = True,
                         clearable = False
                     )
@@ -87,7 +83,7 @@ content = [
                         marks=helpers.generate_range_values(charts.get_num_pages_quantiles()),
                         min=0,
                         max=10,
-                        value=[3, 7]
+                        value=[0, 10]
                     )
                 ])
             ]),
@@ -99,7 +95,7 @@ content = [
                         marks=helpers.generate_range_values(charts.get_price_quantiles()),
                         min=0,
                         max=10,
-                        value=[3, 7]
+                        value=[0, 10]
                     )
                 ])
             ])
@@ -123,8 +119,14 @@ content = [
 
 @app.callback(
     Output("network", "figure"),
-    [Input("chart_type_option", "value")],
+    [Input("chart_type_option", "value"),
+    Input("genre_filter", "value"),
+    Input("rating_filter", "value"),
+    Input("sales_rank_filter", "value"),
+    Input("reviews_filter", "value"),
+    Input("page_filter", "value"),
+    Input("price_filter", "value")],
 )
-def update_network_graph(chart_type_option):
+def update_network_graph(chart_type_option, genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter):
     fig = charts.plot_graph(params = locals())
     return fig

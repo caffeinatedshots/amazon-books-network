@@ -389,23 +389,28 @@ def generate_correlation_network(corr_direction: str):
     return fig
 
 def _compute_centrality_measures(G: nx.Graph):
-    degree_centrality = list(nx.degree_centrality(G).values())
-    betweenness_centrality = list(nx.betweenness_centrality(G).values())
-    closeness_centrality = list(nx.closeness_centrality(G).values())
-    
-    for idx in range(len(G)):
-        G.nodes[idx]['degree_centrality'] = degree_centrality[idx]
-        G.nodes[idx]['betweenness_centrality'] = betweenness_centrality[idx]
-        G.nodes[idx]['closeness_centrality'] = closeness_centrality[idx]
-    
-    return G
+	degree_centrality = list(nx.degree_centrality(G).values())
+	betweenness_centrality = list(nx.betweenness_centrality(G).values())
+	closeness_centrality = list(nx.closeness_centrality(G).values())
+
+	for idx, node_id in enumerate(G.nodes()):
+		G.nodes[node_id]['degree_centrality'] = degree_centrality[idx]
+		G.nodes[node_id]['betweenness_centrality'] = betweenness_centrality[idx]
+		G.nodes[node_id]['closeness_centrality'] = closeness_centrality[idx]
+
+	return G
 
 def _compute_clustering_coefficients(G: nx.Graph):
     clustering_coefficients = nx.clustering(G)
     
-    for idx in range(len(G)):
+    for idx in G.nodes():
         G.nodes[idx]['clustering_coefficient'] = clustering_coefficients[idx]
     
+    return G
+
+def _compute_adjacencies(G: nx.Graph):    
+    for idx in G.nodes():
+        G.nodes[idx]['num_connections'] = len(G[idx])
     return G
 
 
@@ -423,13 +428,53 @@ def _generate_intracluster_strength(G:nx.Graph, nodes: List[int]) -> int:
     
     return total_interactions/len(nodes)
 
-def generate_graph(dataset:str='amazon'):
+def generate_graph(dataset:str='amazon', filters = None):
     G = nx.Graph()
     
     if dataset == 'amazon':
         node_df = NODE_DF
         edge_df = EDGE_DF
-    
+    	
+        if filters:
+        	filter_mapping = {
+        		'genre_filter' : 'genre',
+        		'sales_rank_filter' : 'sales_rank',
+        		'rating_filter' : 'avg_rating',
+        		'reviews_filter' : 'num_reviews',
+        		'page_filter' : 'num_pages',
+        		'price_filter' : 'price'
+        	}
+
+        	filtered_df = node_df.copy()
+
+        	for filter_name, value in filters.items():
+        		column = filter_mapping[filter_name]
+        		if type(value) != list:
+        			value = [value]
+
+        		if column in ['genre', 'avg_rating']:
+        			filtered_df = filtered_df[filtered_df[column].isin(value)]
+
+        		elif column in ['sales_rank', 'num_reviews']:
+        			temp_df = pd.DataFrame()
+        			for value_range in value:
+        				low, high = value_range.split(" - ")
+        				df_slice = filtered_df[filtered_df[column].between(int(low), int(high))]
+        				temp_df = temp_df.append(df_slice)
+        			filtered_df = temp_df
+
+        		elif column in ['num_pages', 'price']:
+        			low, high = value
+        			low_quantile = filtered_df[column].quantile(low * 0.1)
+        			high_quantile = filtered_df[column].quantile(high * 0.1)
+        			filtered_df = filtered_df[filtered_df[column].between(low_quantile, high_quantile)]
+
+        	keep_nodes = filtered_df['id']
+
+        	node_df = filtered_df
+
+        	edge_df = edge_df[edge_df['source'].isin(keep_nodes) & edge_df['target'].isin(keep_nodes)]
+
         # Create Nodes
         for index, row in node_df.iterrows():
             node_info = {
@@ -462,6 +507,8 @@ def generate_graph(dataset:str='amazon'):
         
         # Clustering coefficients
         G = _compute_clustering_coefficients(G)
+
+        G = _compute_adjacencies(G)
     
     return G
 
@@ -495,17 +542,23 @@ def generate_clique_metrics(G: nx.Graph) -> Dict[str,List[int]]:
 networkGraph = generate_graph()
 
 def plot_graph(G = networkGraph, params = None):
-	pos = nx.random_layout(G)
-	if params and 'chart_type_option' in params:
-		layouts = {
-			'circular' : lambda g : nx.circular_layout(g),
-			'kamada-kawai' : lambda g : nx.kamada_kawai_layout(g),
-			'random' : lambda g : nx.random_layout(g),
-			'shell' : lambda g : nx.shell_layout(g),
-			'spring' : lambda g : nx.spring_layout(g),
-			'spectral' : lambda g : nx.spectral_layout(g)
-		}
-		pos = layouts[params['chart_type_option']](G)
+	chart_type_option = 'spring'
+
+	if params:
+		chart_type_option = params.pop('chart_type_option')
+		valid_params = {key : value for key, value in params.items() if value}
+		G = generate_graph(filters = valid_params)
+
+	layouts = {
+		'circular' : lambda g : nx.circular_layout(g),
+		'kamada-kawai' : lambda g : nx.kamada_kawai_layout(g),
+		'random' : lambda g : nx.random_layout(g),
+		'shell' : lambda g : nx.shell_layout(g),
+		'spring' : lambda g : nx.spring_layout(g),
+		'spectral' : lambda g : nx.spectral_layout(g)
+	}
+
+	pos = layouts[chart_type_option](G)
 
 	edge_x = []
 	edge_y = []
@@ -549,12 +602,13 @@ def plot_graph(G = networkGraph, params = None):
 	        size=10,
 	        line_width=2))
 
-	node_adjacencies = []
 	node_text = []
-	for node, adjacencies in enumerate(G.adjacency()):
-	    node_adjacencies.append(len(adjacencies[1]))
-	    node_text.append('# of connections: '+str(len(adjacencies[1])))
 
+	for node in G.nodes():
+		node_info = G.nodes()[node]
+		node_text.append("<br>".join([f"<b>{key}:</b> {value}" for key, value in node_info.items()]))
+
+	node_adjacencies = [G.nodes()[node]['num_connections'] for node in G]
 	node_trace.marker.color = node_adjacencies
 	node_trace.text = node_text
 
@@ -570,8 +624,7 @@ def plot_graph(G = networkGraph, params = None):
                 },
 				paper_bgcolor='rgba(0,0,0,0)',
 				plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(b=20,l=5,r=5,t=40),
-                
+                margin=dict(b=20,l=5,r=5,t=40)
             )
         )
 	return fig
