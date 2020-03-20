@@ -56,3 +56,9 @@ def network_layout_options():
         {'label' : 'Spectral', 'value' : 'spectral'}
     ]
     return options
+
+def generate_options(option_arr):
+    return [{'label' : str(option).title(), 'value' : str(option)} for option in option_arr]
+
+def generate_range_values(value_arr):
+    return {i : str(value_arr[i]) for i in range(len(value_arr))}

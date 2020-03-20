@@ -46,6 +46,44 @@ def read_edge_df(edge_file:str):
 NODE_DF = read_node_df(NODES_FILE)
 EDGE_DF = read_edge_df(EDGES_FILE)
 
+def get_unique_genres(df = NODE_DF):
+	return sorted(df['genre'].unique())
+
+def get_sales_rank_categories(df = NODE_DF):
+	lowest = int(df['sales_rank'].min())
+	q1 = int(df['sales_rank'].quantile(0.25))
+	median = int(df['sales_rank'].quantile(0.5))
+	q3 = int(df['sales_rank'].quantile(0.75))
+	highest = int(df['sales_rank'].max())
+	return [
+		f"{lowest} - {q1}",
+		f"{q1 + 1} - {median}",
+		f"{median + 1} - {q3}",
+		f"{q3 + 1} - {highest}"
+	]
+
+def get_unique_ratings(df = NODE_DF):
+	return sorted(df['avg_rating'].unique())
+
+def get_review_categories(df = NODE_DF):
+	lowest = int(df['num_reviews'].min())
+	q1 = int(df['num_reviews'].quantile(0.25))
+	median = int(df['num_reviews'].quantile(0.5))
+	q3 = int(df['num_reviews'].quantile(0.75))
+	highest = int(df['num_reviews'].max())
+	return [
+		f"{lowest} - {q1}",
+		f"{q1 + 1} - {median}",
+		f"{median + 1} - {q3}",
+		f"{q3 + 1} - {highest}"
+	]
+
+def get_num_pages_quantiles(df = NODE_DF):
+	return [int(df['num_pages'].quantile(i * 0.1)) for i in range(0, 11)]
+
+def get_price_quantiles(df = NODE_DF):
+	return [round(df['price'].quantile(i * 0.1), 2) for i in range(0, 11)]
+
 def get_generic_insights(data_df:pd.DataFrame = NODE_DF):
 	most_common_genre = data_df['genre'].mode()[0]
 	
