@@ -113,16 +113,51 @@ content = [
                         style={'width': '100%', 'height': '50vh'},
                         elements = charts.plot_cyto_graph()
                     )),
-                    # charts.include_loader(dcc.Graph(
-                    #     id = 'network',
-                    #     figure = charts.plot_graph(),
-                    #     config = {"displayModeBar" : False},
-                    #     style = {'height' : '60vh'}
-                    # ))
+                ]),
+                html.Br(),
+                html.Div(className = 'bar-chart-wp', children = [
+                    charts.include_loader(cyto.Cytoscape(
+                        id='cyto-ego-network',
+                        layout={'name': 'cose'},
+                        style={'width': '100%', 'height': '50vh'},
+                        elements = charts.plot_cyto_ego_graph()
+                    )),
+                ]),
+            ])
+        ])
+    ]),
+    html.Div(className = 'mg-t-20', children = [
+        html.Div(className = 'row', children = [
+            html.Div(className = 'col-lg-3'),
+            html.Div(className = 'col-lg-6', children = [
+                html.Div(className = 'bar-chart-wp', children = [
+                    html.B("N-Clique Network"),
+                    dcc.Dropdown(
+                        id="nclique_filter",
+                        options=helpers.generate_options(charts.get_nclique_options()),
+                        multi = False,
+                        clearable = False,
+                        value=0
+                    )
+                ])
+            ]),
+            html.Div(className = 'col-lg-3')
+        ])
+    ]),
+    html.Div(className = 'mg-t-20', children = [
+        html.Div(className = 'row', children = [
+            html.Div(className = 'col-lg-12', children = [
+                html.Div(className = 'bar-chart-wp', children = [
+                    charts.include_loader(cyto.Cytoscape(
+                        id='cyto-clique-network',
+                        layout={'name': 'cose'},
+                        style={'width': '100%', 'height': '50vh'},
+                        elements = charts.plot_cyto_nclique_graph()
+                    )),
                 ])
             ])
         ])
-    ])
+    ]),
 ]
 
 @app.callback(
@@ -143,5 +178,48 @@ def update_network_graph(genre_filter, rating_filter, sales_rank_filter, reviews
     [Input("chart_type_option", "value")]
 )
 def update_graph_layout(chart_type_option):
+    layout = {"name" : chart_type_option}
+    return layout
+
+@app.callback(
+    Output("cyto-ego-network", "elements"),
+    [Input("genre_filter", "value"),
+    Input("rating_filter", "value"),
+    Input("sales_rank_filter", "value"),
+    Input("reviews_filter", "value"),
+    Input("page_filter", "value"),
+    Input("price_filter", "value")],
+)
+def update_ego_network_graph(genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter):
+    elements = charts.plot_cyto_ego_graph(params = locals())
+    return elements
+
+@app.callback(
+    Output("cyto-ego-network", "layout"),
+    [Input("chart_type_option", "value")]
+)
+def update_ego_graph_layout(chart_type_option):
+    layout = {"name" : chart_type_option}
+    return layout
+
+@app.callback(
+    Output("cyto-clique-network", "elements"),
+    [Input("genre_filter", "value"),
+    Input("rating_filter", "value"),
+    Input("sales_rank_filter", "value"),
+    Input("reviews_filter", "value"),
+    Input("page_filter", "value"),
+    Input("price_filter", "value"),
+    Input("nclique_filter", "value")],
+)
+def update_nclique_network_graph(genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter, nclique_filter):
+    elements = charts.plot_cyto_nclique_graph(params = locals())
+    return elements
+
+@app.callback(
+    Output("cyto-nclique-network", "layout"),
+    [Input("chart_type_option", "value")]
+)
+def update_nclique_graph_layout(chart_type_option):
     layout = {"name" : chart_type_option}
     return layout
