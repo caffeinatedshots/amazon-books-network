@@ -47,7 +47,7 @@ def style_font():
     return font_style
 
 def network_layout_options():
-    layout_types = ["random", "grid", "circle", "concentric", "breadthfirst", "cose"]
+    layout_types = ["random", "grid", "circle", "concentric", "breadthfirst", "cose", "cose-bilkent", "cola", "euler", "spread", "dagre", "klay"]
     options = [{'label' : layout.title(), 'value' : layout} for layout in layout_types]
     return options
 
