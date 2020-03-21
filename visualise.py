@@ -2,6 +2,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
+import dash_cytoscape as cyto
+
 import charts
 import helpers
 from app import app
@@ -17,7 +19,7 @@ content = [
                     dcc.Dropdown(
                         id="chart_type_option",
                         options=helpers.network_layout_options(),
-                        value="spring",
+                        value="cose",
                         clearable = False
                     )
                 ])
@@ -104,13 +106,19 @@ content = [
     html.Div(className = 'mg-t-20', children = [
         html.Div(className = 'row', children = [
             html.Div(className = 'col-lg-12', children = [
-                html.Div(className = 'bar-chart-wp', children = [ 
-                    charts.include_loader(dcc.Graph(
-                        id = 'network',
-                        figure = charts.plot_graph(),
-                        config = {"displayModeBar" : False},
-                        style = {'height' : '60vh'}
-                    ))
+                html.Div(className = 'bar-chart-wp', children = [
+                    charts.include_loader(cyto.Cytoscape(
+                        id='cyto-network',
+                        layout={'name': 'cose'},
+                        style={'width': '100%', 'height': '50vh'},
+                        elements = charts.plot_cyto_graph()
+                    )),
+                    # charts.include_loader(dcc.Graph(
+                    #     id = 'network',
+                    #     figure = charts.plot_graph(),
+                    #     config = {"displayModeBar" : False},
+                    #     style = {'height' : '60vh'}
+                    # ))
                 ])
             ])
         ])
@@ -118,15 +126,22 @@ content = [
 ]
 
 @app.callback(
-    Output("network", "figure"),
-    [Input("chart_type_option", "value"),
-    Input("genre_filter", "value"),
+    Output("cyto-network", "elements"),
+    [Input("genre_filter", "value"),
     Input("rating_filter", "value"),
     Input("sales_rank_filter", "value"),
     Input("reviews_filter", "value"),
     Input("page_filter", "value"),
     Input("price_filter", "value")],
 )
-def update_network_graph(chart_type_option, genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter):
-    fig = charts.plot_graph(params = locals())
-    return fig
+def update_network_graph(genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter):
+    elements = charts.plot_cyto_graph(params = locals())
+    return elements
+
+@app.callback(
+    Output("cyto-network", "layout"),
+    [Input("chart_type_option", "value")]
+)
+def update_graph_layout(chart_type_option):
+    layout = {"name" : chart_type_option}
+    return layout

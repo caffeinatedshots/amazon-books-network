@@ -752,5 +752,15 @@ def generate_ego_network(n_ranks:int, G:nx.Graph = networkGraph):
 
     return plotly_figures
 
+def plot_cyto_graph(G = networkGraph, params = None):
+	if params:
+		valid_params = {key : value for key, value in params.items() if value}
+		G = generate_graph(filters = valid_params)
+
+	elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id))}} for node_id in G.nodes()]
+	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target))}} for source, target in G.edges()]
+	
+	return elements + edges
+
 def include_loader(graph_component):
 	return dcc.Loading(type = "cube", color = "#36454f", children = [graph_component])

@@ -47,14 +47,8 @@ def style_font():
     return font_style
 
 def network_layout_options():
-    options = [
-        {'label' : 'Circular', 'value' : 'circular'},
-        {'label' : 'Kamada-Kawai', 'value' : 'kamada-kawai'},
-        {'label' : 'Random', 'value' : 'random'},
-        {'label' : 'Shell', 'value' : 'shell'},
-        {'label' : 'Spring', 'value' : 'spring'},
-        {'label' : 'Spectral', 'value' : 'spectral'}
-    ]
+    layout_types = ["random", "grid", "circle", "concentric", "breadthfirst", "cose"]
+    options = [{'label' : layout.title(), 'value' : layout} for layout in layout_types]
     return options
 
 def generate_options(option_arr):
