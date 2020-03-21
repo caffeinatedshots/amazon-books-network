@@ -449,7 +449,7 @@ def generate_graph(dataset:str='amazon', filters = None, nodelist = None):
 				'reviews_filter' : 'num_reviews',
 				'page_filter' : 'num_pages',
 				'price_filter' : 'price',
-				'nclique_filter': 'nclique' #useless
+				'nclique_filter' : 'nclique'
 			}
 
 			filtered_df = node_df.copy()
@@ -787,31 +787,37 @@ def plot_cyto_graph(G = networkGraph, params = None):
 	
 	return elements + edges
 
-def plot_cyto_ego_graph(G = networkGraph, params = None):
+def plot_cyto_ego_graphs(G = networkGraph, params = None):
 	if params:
 		valid_params = {key : value for key, value in params.items() if value}
 		G = generate_graph(filters = valid_params)
 
 	ego_graph_list = generate_cyto_ego_networks(G, 3)
 	# To update to show 3
-	eg_graph = ego_graph_list[0]
 
-	elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id)), 'is_ego': eg_graph.nodes[node_id]['is_ego']}} for node_id in eg_graph.nodes()]
-	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target))}} for source, target in eg_graph.edges()]
+	graph_elements = []
+	for eg_graph in ego_graph_list:
 
-	return elements + edges
+		elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id)), 'is_ego': eg_graph.nodes[node_id]['is_ego']}} for node_id in eg_graph.nodes()]
+		edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target))}} for source, target in eg_graph.edges()]
+
+		graph_elements.append(elements + edges)
+
+	return graph_elements
 
 def plot_cyto_nclique_graph(G = networkGraph, params = None):
+	nclique_value = 3
+	valid_params = {}
 	if params:
+		if 'nclique_filter' in params:
+			nclique_value = helpers.clique_sizes()[int(params.pop('nclique_filter'))]
 		valid_params = {key : value for key, value in params.items() if value}
 		G = generate_graph(filters = valid_params)
-	else:
-		valid_params = { 'nclique_filter': 1 }
 
 	# Dictionary with information of each maximal clique based on value of n in n-clique
 	clique_graph_table_info = generate_clique_metrics(G)
 
-	clique_nodes_list = [item['nodes'] for item in get_cliques_by_size(G)[int(valid_params['nclique_filter'])]]
+	clique_nodes_list = [item['nodes'] for item in get_cliques_by_size(G)[nclique_value]]
 	flatten_node_list = list(set([node for clique in clique_nodes_list for node in clique]))
 	G = generate_graph(filters = valid_params, nodelist = flatten_node_list)
 

@@ -51,6 +51,9 @@ def network_layout_options():
     options = [{'label' : layout.title(), 'value' : layout} for layout in layout_types]
     return options
 
+def clique_sizes():
+    return [2, 3, 4, 5]
+
 def generate_options(option_arr):
     return [{'label' : str(option).title(), 'value' : option} for option in option_arr]
 
