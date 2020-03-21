@@ -3,6 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 import dash_cytoscape as cyto
+cyto.load_extra_layouts()
 
 import charts
 import helpers
@@ -105,14 +106,15 @@ content = [
     ]),
     html.Div(className = 'mg-t-20', children = [
         html.Div(className = 'row', children = [
-            html.Div(className = 'col-lg-12', children = [
+            html.Div(className = 'col-lg-6', children = [
+                html.H3("Overall"),
                 html.Div(className = 'bar-chart-wp', children = [
-                    charts.include_loader(cyto.Cytoscape(
+                    cyto.Cytoscape(
                         id='cyto-network',
                         layout={'name': 'cose'},
-                        style={'width': '100%', 'height': '50vh'},
+                        style={'width': '100%', 'height': '55vh'},
                         elements = charts.plot_cyto_graph()
-                    )),
+                    )
                 ]),
                 html.Br(),
                 html.Div(className = 'bar-chart-wp', children = [
@@ -154,11 +156,81 @@ content = [
                         style={'width': '100%', 'height': '50vh'},
                         elements = charts.plot_cyto_nclique_graph()
                     )),
+    #                 ),
+    #                 # charts.include_loader(dcc.Graph(
+    #                 #     id = 'network',
+    #                 #     figure = charts.plot_graph(),
+    #                 #     config = {"displayModeBar" : False},
+    #                 #     style = {'height' : '60vh'}
+    #                 # ))
+    #             ])
+    #         ]),
+    #         html.Div(className = 'col-lg-6', children = [
+    #             html.Div(className = "row", children = [
+    #                 html.Div(className = 'col-lg-8', children = [
+    #                     html.H3("Cliques")
+    #                 ]),
+    #                 html.Div(className = 'col-lg-4', children = [
+    #                     dcc.Slider(
+    #                         min = 0,
+    #                         max = 3,
+    #                         marks = helpers.generate_range_values([2,3,4,5]),
+    #                         value = 1
+    #                     )
+    #                 ])
+    #             ]),
+    #             html.Div(className = 'bar-chart-wp', children = [
+    #                 cyto.Cytoscape(
+    #                     id='cyto-network-1',
+    #                     layout={'name': 'cose'},
+    #                     style={'width': '100%', 'height': '30vh'},
+    #                     elements = []
+    #                 ),
+    #                 # charts.include_loader(dcc.Graph(
+    #                 #     id = 'network',
+    #                 #     figure = charts.plot_graph(),
+    #                 #     config = {"displayModeBar" : False},
+    #                 #     style = {'height' : '60vh'}
+    #                 # ))
+    #             ]),
+    #             html.Div(className = 'mg-t-20', children = [
+    #                 html.H3("Egos"),
+    #                 html.Div(className = "row", children = [
+    #                     html.Div(className = 'col-lg-4', children = [
+    #                         html.Div(className = 'bar-chart-wp', children = [
+    #                             cyto.Cytoscape(
+    #                                 id='cyto-network-1',
+    #                                 layout={'name': 'cose'},
+    #                                 style={'width': '100%', 'height': '20vh'},
+    #                                 elements = []
+    #                             )
+    #                         ])
+    #                     ]),
+    #                     html.Div(className = 'col-lg-4', children = [
+    #                         html.Div(className = 'bar-chart-wp', children = [
+    #                             cyto.Cytoscape(
+    #                                 id='cyto-network-1',
+    #                                 layout={'name': 'cose'},
+    #                                 style={'width': '100%', 'height': '20vh'},
+    #                                 elements = []
+    #                             )
+    #                         ])
+    #                     ]),
+    #                     html.Div(className = 'col-lg-4', children = [
+    #                         html.Div(className = 'bar-chart-wp', children = [
+    #                             cyto.Cytoscape(
+    #                                 id='cyto-network-1',
+    #                                 layout={'name': 'cose'},
+    #                                 style={'width': '100%', 'height': '20vh'},
+    #                                 elements = []
+    #                             )
+    #                         ])
+    #                     ])
+                    ])
                 ])
             ])
         ])
-    ]),
-]
+    ]
 
 @app.callback(
     Output("cyto-network", "elements"),
