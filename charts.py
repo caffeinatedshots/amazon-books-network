@@ -231,26 +231,6 @@ def filter_stats_table(filter):
 			dff = dff.loc[dff[col_name].str.startswith(filter_value)]
 	return dff
 
-def _compute_articulation_points(G: nx.Graph):
-	"""
-	An articulation point or cut vertex is any node whose removal (along with all its incident edges) increases the number of connected components of a graph.
-	"""
-	articulation_points = list(nx.articulation_points(G))
-	
-	return articulation_points
-
-def _compute_biconnected_components_edges(G: nx.Graph):
-	"""
-	Biconnected components are maximal subgraphs such that the removal of a node (and all edges incident on that node) will not disconnect the subgraph.
-	------------------
-	Returns a list of lists of length 2: [Set, List of tuple pairs (edges)]
-	"""
-	biconnected_components = list(nx.biconnected_components(G))
-	biconnected_edges = list(nx.biconnected_component_edges(G))
-	components_and_edges = [[biconnected_components[idx], biconnected_edges[idx]] for idx in range(len(biconnected_components))]
-
-	return components_and_edges
-
 def _compute_correlations_traces(corr_direction: str):
 	"""
 	Returns information about positive / negative correlated features
@@ -783,7 +763,7 @@ def plot_cyto_graph(G = networkGraph, params = None):
 		G = generate_graph(filters = valid_params)
 
 	elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id))}} for node_id in G.nodes()]
-	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in G.edges.data("weight")]
+	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight) * 5}} for source, target, weight in G.edges.data("weight")]
 	
 	return elements + edges
 
@@ -799,7 +779,7 @@ def plot_cyto_ego_graphs(G = networkGraph, params = None):
 	for eg_graph in ego_graph_list:
 
 		elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id)), 'is_ego': eg_graph.nodes[node_id]['is_ego']}} for node_id in eg_graph.nodes()]
-		edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in eg_graph.edges.data("weight")]
+		edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target))}} for source, target in eg_graph.edges()]
 
 		graph_elements.append(elements + edges)
 
@@ -822,7 +802,7 @@ def plot_cyto_nclique_graph(G = networkGraph, params = None):
 	G = generate_graph(filters = valid_params, nodelist = flatten_node_list)
 
 	elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id))}} for node_id in G.nodes()]
-	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in G.edges.data("weight")]
+	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target))}} for source, target in G.edges()]
 
 	return elements + edges
 
