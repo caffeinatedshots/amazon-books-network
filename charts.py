@@ -758,7 +758,7 @@ def plot_cyto_graph(G = networkGraph, params = None):
 		G = generate_graph(filters = valid_params)
 
 	elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id))}} for node_id in G.nodes()]
-	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target))}} for source, target in G.edges()]
+	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight) * 5}} for source, target, weight in G.edges.data("weight")]
 	
 	return elements + edges
 

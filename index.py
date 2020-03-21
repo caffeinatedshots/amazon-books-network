@@ -12,7 +12,7 @@ from app import app
 
 app.title = "Amazon Books Network Analysis"
 
-app.layout = html.Div(style = {"background" : "#f6f8fa"}, children=[
+app.layout = html.Div(style = {"background" : "#f6f8fa", 'height' : '100vh'}, children=[
     html.Div(className = "header-top-area", children = [
         html.Div(className = 'container', children = [
             html.Div(className = 'row', children = [
