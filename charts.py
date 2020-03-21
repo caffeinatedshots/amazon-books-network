@@ -762,7 +762,17 @@ def plot_cyto_graph(G = networkGraph, params = None):
 		valid_params = {key : value for key, value in params.items() if value}
 		G = generate_graph(filters = valid_params)
 
-	elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id))}} for node_id in G.nodes()]
+	elements = [{'data': {
+					'id': str(int(node_id)),
+					'label': str(int(node_id)),
+					'genre' : int(G.nodes[node_id]['genre']),
+					'sales_rank' : int(G.nodes[node_id]['sales_rank']),
+					'avg_rating' : float(G.nodes[node_id]['avg_rating']),
+					'num_reviews' : int(G.nodes[node_id]['num_reviews']),
+					'num_pages' : int(G.nodes[node_id]['num_pages']),
+					'price' : float(G.nodes[node_id]['price']),
+					}
+				} for node_id in G.nodes()]
 	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in G.edges.data("weight")]
 	
 	return elements + edges
@@ -778,7 +788,18 @@ def plot_cyto_ego_graphs(G = networkGraph, params = None):
 	graph_elements = []
 	for eg_graph in ego_graph_list:
 
-		elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id)), 'is_ego': eg_graph.nodes[node_id]['is_ego']}} for node_id in eg_graph.nodes()]
+		elements = [{'data': {
+						'id': str(int(node_id)),
+						'label': str(int(node_id)),
+						'genre' : int(eg_graph.nodes[node_id]['genre']),
+						'sales_rank' : int(eg_graph.nodes[node_id]['sales_rank']),
+						'avg_rating' : float(eg_graph.nodes[node_id]['avg_rating']),
+						'num_reviews' : int(eg_graph.nodes[node_id]['num_reviews']),
+						'num_pages' : int(eg_graph.nodes[node_id]['num_pages']),
+						'price' : float(eg_graph.nodes[node_id]['price']),
+						'is_ego': eg_graph.nodes[node_id]['is_ego']
+						}
+					} for node_id in eg_graph.nodes()]
 		edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in eg_graph.edges.data('weight')]
 
 		graph_elements.append(elements + edges)
@@ -801,7 +822,17 @@ def plot_cyto_nclique_graph(G = networkGraph, params = None):
 	flatten_node_list = list(set([node for clique in clique_nodes_list for node in clique]))
 	G = generate_graph(filters = valid_params, nodelist = flatten_node_list)
 
-	elements = [{'data': {'id': str(int(node_id)), 'label': str(int(node_id))}} for node_id in G.nodes()]
+	elements = [{'data': {
+					'id': str(int(node_id)),
+					'label': str(int(node_id)),
+					'genre' : int(G.nodes[node_id]['genre']),
+					'sales_rank' : int(G.nodes[node_id]['sales_rank']),
+					'avg_rating' : float(G.nodes[node_id]['avg_rating']),
+					'num_reviews' : int(G.nodes[node_id]['num_reviews']),
+					'num_pages' : int(G.nodes[node_id]['num_pages']),
+					'price' : float(G.nodes[node_id]['price']),
+					}
+				} for node_id in G.nodes()]
 	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in G.edges.data('weight')]
 
 	return elements + edges

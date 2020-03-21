@@ -13,19 +13,29 @@ content = [
     html.H1("Visualise"),
     html.Div(className = 'mg-t-20', children = [
         html.Div(className = 'row', children = [
-            html.Div(className = 'col-lg-3'),
-            html.Div(className = 'col-lg-6', children = [
+            html.Div(className = 'col-lg-3', children = [
                 html.Div(className = 'bar-chart-wp', children = [
                     html.B("Chart Layout"),
                     dcc.Dropdown(
                         id="chart_type_option",
-                        options=helpers.network_layout_options(),
+                        options=helpers.generate_options(helpers.network_layout_options()),
                         value="cose",
                         clearable = False
                     )
                 ])
             ]),
-            html.Div(className = 'col-lg-3')
+            html.Div(className = 'col-lg-6'),
+            html.Div(className = 'col-lg-3', children = [
+                html.Div(className = 'bar-chart-wp', children = [
+                    html.B("Node Colour"),
+                    dcc.Dropdown(
+                        id = "node_colour_option",
+                        options = helpers.generate_options(helpers.data_attributes()),
+                        value = 'genre',
+                        clearable = False
+                    )
+                ])
+            ])
         ])
     ]),
     html.Div(className = 'mg-t-20', children = [
@@ -113,21 +123,7 @@ content = [
                         id='cyto-network',
                         layout={'name': 'cose'},
                         style={'width': '100%', 'height': '55vh'},
-                        elements = charts.plot_cyto_graph(),
-                        stylesheet=[
-                            {
-                                'selector': 'edge',
-                                'style': {
-                                    'width': 'data(weight)'
-                                }
-                            },
-                            {
-                                'selector': 'node',
-                                'style': {
-                                    'label': 'data(id)'
-                                }
-                            }
-                        ]
+                        elements = charts.plot_cyto_graph()
                     )
                 ]),
             ]),
@@ -151,21 +147,7 @@ content = [
                         id='cyto-clique-network',
                         layout={'name': 'cose'},
                         style={'width': '100%', 'height': '30vh'},
-                        elements = charts.plot_cyto_nclique_graph(),
-                        stylesheet=[
-                            {
-                                'selector': 'edge',
-                                'style': {
-                                    'width': 'data(weight)'
-                                }
-                            },
-                            {
-                                'selector': 'node',
-                                'style': {
-                                    'label': 'data(id)'
-                                }
-                            }
-                        ]
+                        elements = charts.plot_cyto_nclique_graph()
                     )
                 ]),
                 html.Div(className = 'mg-t-20', children = [
@@ -177,21 +159,7 @@ content = [
                                     id='cyto-ego-network-1',
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
-                                    elements = [],
-                                    stylesheet=[
-                                        {
-                                            'selector': 'edge',
-                                            'style': {
-                                                'width': 'data(weight)'
-                                            }
-                                        },
-                                        {
-                                            'selector': 'node',
-                                            'style': {
-                                                'label': 'data(id)'
-                                            }
-                                        }
-                                    ]
+                                    elements = []
                                 )
                             ])
                         ]),
@@ -201,21 +169,7 @@ content = [
                                     id='cyto-ego-network-2',
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
-                                    elements = [],
-                                    stylesheet=[
-                                        {
-                                            'selector': 'edge',
-                                            'style': {
-                                                'width': 'data(weight)'
-                                            }
-                                        },
-                                        {
-                                            'selector': 'node',
-                                            'style': {
-                                                'label': 'data(id)'
-                                            }
-                                        }
-                                    ]
+                                    elements = []
                                 )
                             ])
                         ]),
@@ -225,21 +179,7 @@ content = [
                                     id='cyto-ego-network-3',
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
-                                    elements = [],
-                                    stylesheet=[
-                                        {
-                                            'selector': 'edge',
-                                            'style': {
-                                                'width': 'data(weight)'
-                                            }
-                                        },
-                                        {
-                                            'selector': 'node',
-                                            'style': {
-                                                'label': 'data(id)'
-                                            }
-                                        }
-                                    ]
+                                    elements = []
                                 )
                             ])
                         ])
@@ -282,3 +222,43 @@ def update_network_graphs(genre_filter, rating_filter, sales_rank_filter, review
 def update_graph_layout(chart_type_option):
     layout = {"name" : chart_type_option}
     return [layout] * 5
+
+@app.callback(
+    [Output("cyto-network", "stylesheet"),
+    Output("cyto-clique-network", "stylesheet"),
+    Output("cyto-ego-network-1", "stylesheet"),
+    Output("cyto-ego-network-2", "stylesheet"),
+    Output("cyto-ego-network-3", "stylesheet")],
+    [Input("node_colour_option", "value")]
+)
+def update_node_colour(node_colour_option):
+    func_map = {
+        'genre' : charts.get_unique_genres(),
+        'avg_rating' : charts.get_unique_ratings()
+    }
+
+    basic_stylesheet = [
+        {
+            'selector': 'edge',
+            'style': {
+                'width': 'data(weight)'
+            }
+        },
+        {
+            'selector': 'node',
+            'style': {
+                'label': 'data(id)'
+            }
+        }
+    ]
+
+    node_colour_styles = [
+        {
+            'selector' : f'[{node_colour_option} = {func_map[node_colour_option][i]}]',
+            'style' : {
+                'background-color' : f'{helpers.colour_scheme()[i]}'
+            }
+        } for i in range(len(func_map[node_colour_option]))
+    ]
+    
+    return [basic_stylesheet + node_colour_styles] * 5

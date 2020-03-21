@@ -48,11 +48,16 @@ def style_font():
 
 def network_layout_options():
     layout_types = ["random", "grid", "circle", "concentric", "breadthfirst", "cose", "cose-bilkent", "cola", "euler", "spread", "dagre", "klay"]
-    options = [{'label' : layout.title(), 'value' : layout} for layout in layout_types]
-    return options
+    return layout_types
 
 def clique_sizes():
     return [2, 3, 4, 5]
+
+def data_attributes():
+    return ['genre', 'avg_rating']
+
+def colour_scheme():
+    return ["#5FAD56", "#F2C14E", "#F78154", "#B4436C", "#2F4073", "#AA3939", "#764B8E"]
 
 def generate_options(option_arr):
     return [{'label' : str(option).title(), 'value' : option} for option in option_arr]
