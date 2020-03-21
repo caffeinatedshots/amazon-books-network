@@ -113,7 +113,21 @@ content = [
                         id='cyto-network',
                         layout={'name': 'cose'},
                         style={'width': '100%', 'height': '55vh'},
-                        elements = charts.plot_cyto_graph()
+                        elements = charts.plot_cyto_graph(),
+                        stylesheet=[
+                            {
+                                'selector': 'edge',
+                                'style': {
+                                    'width': 'data(weight)'
+                                }
+                            },
+                            {
+                                'selector': 'node',
+                                'style': {
+                                    'label': 'data(id)'
+                                }
+                            }
+                        ]
                     )
                 ]),
             ]),
@@ -137,7 +151,21 @@ content = [
                         id='cyto-clique-network',
                         layout={'name': 'cose'},
                         style={'width': '100%', 'height': '30vh'},
-                        elements = charts.plot_cyto_nclique_graph()
+                        elements = charts.plot_cyto_nclique_graph(),
+                        stylesheet=[
+                            {
+                                'selector': 'edge',
+                                'style': {
+                                    'width': 'data(weight)'
+                                }
+                            },
+                            {
+                                'selector': 'node',
+                                'style': {
+                                    'label': 'data(id)'
+                                }
+                            }
+                        ]
                     )
                 ]),
                 html.Div(className = 'mg-t-20', children = [
@@ -149,7 +177,21 @@ content = [
                                     id='cyto-ego-network-1',
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
-                                    elements = []
+                                    elements = [],
+                                    stylesheet=[
+                                        {
+                                            'selector': 'edge',
+                                            'style': {
+                                                'width': 'data(weight)'
+                                            }
+                                        },
+                                        {
+                                            'selector': 'node',
+                                            'style': {
+                                                'label': 'data(id)'
+                                            }
+                                        }
+                                    ]
                                 )
                             ])
                         ]),
@@ -159,7 +201,21 @@ content = [
                                     id='cyto-ego-network-2',
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
-                                    elements = []
+                                    elements = [],
+                                    stylesheet=[
+                                        {
+                                            'selector': 'edge',
+                                            'style': {
+                                                'width': 'data(weight)'
+                                            }
+                                        },
+                                        {
+                                            'selector': 'node',
+                                            'style': {
+                                                'label': 'data(id)'
+                                            }
+                                        }
+                                    ]
                                 )
                             ])
                         ]),
@@ -169,7 +225,21 @@ content = [
                                     id='cyto-ego-network-3',
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
-                                    elements = []
+                                    elements = [],
+                                    stylesheet=[
+                                        {
+                                            'selector': 'edge',
+                                            'style': {
+                                                'width': 'data(weight)'
+                                            }
+                                        },
+                                        {
+                                            'selector': 'node',
+                                            'style': {
+                                                'label': 'data(id)'
+                                            }
+                                        }
+                                    ]
                                 )
                             ])
                         ])
