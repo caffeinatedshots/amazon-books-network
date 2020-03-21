@@ -2,6 +2,7 @@ click==7.1.1
 cycler==0.10.0
 dash==1.8.0
 dash-core-components==1.7.0
+dash-cytoscape==0.1.1
 dash-html-components==1.0.2
 dash-renderer==1.2.3
 dash-table==4.6.0
