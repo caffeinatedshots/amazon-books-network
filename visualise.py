@@ -139,7 +139,7 @@ content = [
                         options=helpers.generate_options(charts.get_nclique_options()),
                         multi = False,
                         clearable = False,
-                        value=0
+                        value=1
                     )
                 ])
             ]),
@@ -285,6 +285,8 @@ def update_ego_graph_layout(chart_type_option):
     Input("nclique_filter", "value")],
 )
 def update_nclique_network_graph(genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter, nclique_filter):
+    print('sindei')
+    print(locals())
     elements = charts.plot_cyto_nclique_graph(params = locals())
     return elements
 
