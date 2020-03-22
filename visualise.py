@@ -124,7 +124,8 @@ content = [
                         layout={'name': 'cose'},
                         style={'width': '100%', 'height': '55vh'},
                         elements = charts.plot_cyto_graph()
-                    )
+                    ),
+                    html.P(id='cyto-network-mouseoverNodeData-output')
                 ]),
             ]),
             html.Div(className = 'col-lg-6', children = [
@@ -148,7 +149,8 @@ content = [
                         layout={'name': 'cose'},
                         style={'width': '100%', 'height': '30vh'},
                         elements = charts.plot_cyto_nclique_graph()
-                    )
+                    ),
+                    html.P(id='cyto-clique-network-mouseoverNodeData-output')
                 ]),
                 html.Div(className = 'mg-t-20', children = [
                     html.H3("Egos"),
@@ -160,7 +162,8 @@ content = [
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
                                     elements = []
-                                )
+                                ),
+                                html.P(id='cyto-ego-network-1-mouseoverNodeData-output')
                             ])
                         ]),
                         html.Div(className = 'col-lg-4', children = [
@@ -170,7 +173,8 @@ content = [
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
                                     elements = []
-                                )
+                                ),
+                                html.P(id='cyto-ego-network-2-mouseoverNodeData-output')
                             ])
                         ]),
                         html.Div(className = 'col-lg-4', children = [
@@ -180,7 +184,8 @@ content = [
                                     layout={'name': 'cose'},
                                     style={'width': '100%', 'height': '20vh'},
                                     elements = []
-                                )
+                                ),
+                                html.P(id='cyto-ego-network-3-mouseoverNodeData-output')
                             ])
                         ])
                     ])
@@ -262,3 +267,53 @@ def update_node_colour(node_colour_option):
     ]
     
     return [basic_stylesheet + node_colour_styles] * 5
+
+@app.callback(
+    Output('cyto-network-mouseoverNodeData-output', 'children'),
+    [Input('cyto-network', 'mouseoverNodeData')]
+)
+def displayDefaultHoverNodeData(data):
+    if data:
+        return helpers._generate_node_info(data)
+    else:
+        return ""
+
+@app.callback(
+    Output('cyto-clique-network-mouseoverNodeData-output', 'children'),
+    [Input('cyto-clique-network', 'mouseoverNodeData')]
+)
+def displayCliqueHoverNodeData(data):
+    if data:
+        return helpers._generate_node_info(data)
+    else:
+        return ""
+
+@app.callback(
+    Output('cyto-ego-network-1-mouseoverNodeData-output', 'children'),
+    [Input('cyto-ego-network-1', 'mouseoverNodeData')]
+)
+def displayEgo1HoverNodeData(data):
+    if data:
+        return helpers._generate_node_info(data)
+    else:
+        return ""
+
+@app.callback(
+    Output('cyto-ego-network-2-mouseoverNodeData-output', 'children'),
+    [Input('cyto-ego-network-2', 'mouseoverNodeData')]
+)
+def displayEgo2HoverNodeData(data):
+    if data:
+        return helpers._generate_node_info(data)
+    else:
+        return ""
+
+@app.callback(
+    Output('cyto-ego-network-3-mouseoverNodeData-output', 'children'),
+    [Input('cyto-ego-network-3', 'mouseoverNodeData')]
+)
+def displayEgo3HoverNodeData(data):
+    if data:
+        return helpers._generate_node_info(data)
+    else:
+        return ""

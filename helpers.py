@@ -64,3 +64,15 @@ def generate_options(option_arr):
 
 def generate_range_values(value_arr):
     return {i : str(value_arr[i]) for i in range(len(value_arr))}
+
+def _generate_node_info(data):
+    para = f"""
+        You recently hovered over the node: {data['label']}.
+        Genre: {data['genre']}
+        Sales Rank: {data['sales_rank']}
+        Average Rating: {data['avg_rating']}
+        No. of Reviews: {data['num_reviews']}
+        No. of Pages: {data['num_pages']}
+        Price: {data['price']}
+        """
+    return para
