@@ -270,50 +270,55 @@ def update_node_colour(node_colour_option):
 
 @app.callback(
     Output('cyto-network-mouseoverNodeData-output', 'children'),
-    [Input('cyto-network', 'mouseoverNodeData')]
+    [Input('cyto-network', 'mouseoverNodeData'),
+    Input('cyto-network', 'mouseoverEdgeData')]
 )
-def displayDefaultHoverNodeData(data):
-    if data:
-        return helpers._generate_node_info(data)
+def displayDefaultHoverNodeData(node_data, edge_data):
+    if node_data or edge_data:
+        return helpers._generate_node_edge_info(node_data, edge_data)
     else:
         return ""
 
 @app.callback(
     Output('cyto-clique-network-mouseoverNodeData-output', 'children'),
-    [Input('cyto-clique-network', 'mouseoverNodeData')]
+    [Input('cyto-clique-network', 'mouseoverNodeData'),
+    Input('cyto-clique-network', 'mouseoverEdgeData')]
 )
-def displayCliqueHoverNodeData(data):
-    if data:
-        return helpers._generate_node_info(data)
+def displayCliqueHoverNodeData(node_data, edge_data):
+    if node_data or edge_data:
+        return helpers._generate_node_edge_info(node_data, edge_data)
     else:
         return ""
 
 @app.callback(
     Output('cyto-ego-network-1-mouseoverNodeData-output', 'children'),
-    [Input('cyto-ego-network-1', 'mouseoverNodeData')]
+    [Input('cyto-ego-network-1', 'mouseoverNodeData'),
+    Input('cyto-ego-network', 'mouseoverEdgeData')]
 )
-def displayEgo1HoverNodeData(data):
-    if data:
-        return helpers._generate_node_info(data)
+def displayEgo1HoverNodeData(node_data, edge_data):
+    if node_data or edge_data:
+        return helpers._generate_node_edge_info(node_data, edge_data)
     else:
         return ""
 
 @app.callback(
     Output('cyto-ego-network-2-mouseoverNodeData-output', 'children'),
-    [Input('cyto-ego-network-2', 'mouseoverNodeData')]
+    [Input('cyto-ego-network-2', 'mouseoverNodeData'),
+    Input('cyto-ego-network-2', 'mouseoverEdgeData')]
 )
-def displayEgo2HoverNodeData(data):
-    if data:
-        return helpers._generate_node_info(data)
+def displayEgo2HoverNodeData(node_data, edge_data):
+    if node_data or edge_data:
+        return helpers._generate_node_edge_info(node_data, edge_data)
     else:
         return ""
 
 @app.callback(
     Output('cyto-ego-network-3-mouseoverNodeData-output', 'children'),
-    [Input('cyto-ego-network-3', 'mouseoverNodeData')]
+    [Input('cyto-ego-network-3', 'mouseoverNodeData'),
+    Input('cyto-ego-network-3', 'mouseoverEdgeData')]
 )
-def displayEgo3HoverNodeData(data):
-    if data:
-        return helpers._generate_node_info(data)
+def displayEgo3HoverNodeData(node_data, edge_data):
+    if node_data or edge_data:
+        return helpers._generate_node_edge_info(node_data, edge_data)
     else:
         return ""

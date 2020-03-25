@@ -1,3 +1,5 @@
+import numpy as np
+
 # Filtering functions
 operators = [['ge ', '>='],
              ['le ', '<='],
@@ -65,14 +67,23 @@ def generate_options(option_arr):
 def generate_range_values(value_arr):
     return {i : str(value_arr[i]) for i in range(len(value_arr))}
 
-def _generate_node_info(data):
-    para = f"""
-        You recently hovered over the node: {data['label']}.
-        Genre: {data['genre']}
-        Sales Rank: {data['sales_rank']}
-        Average Rating: {data['avg_rating']}
-        No. of Reviews: {data['num_reviews']}
-        No. of Pages: {data['num_pages']}
-        Price: {data['price']}
-        """
+def _generate_node_edge_info(node_data, edge_data):
+    para = """"""
+    if node_data:
+        para += f"""
+            You recently hovered over the node: {node_data['label']}.
+            Genre: {node_data['genre']}
+            Sales Rank: {node_data['sales_rank']}
+            Average Rating: {node_data['avg_rating']}
+            No. of Reviews: {node_data['num_reviews']}
+            No. of Pages: {node_data['num_pages']}
+            Price: {node_data['price']}
+            """
+    if edge_data:
+        para += f"""
+            You recently hovered over the edge:
+            Source: {edge_data['source']}
+            Targe: {edge_data['target']}
+            Frequency: {int(np.exp(edge_data['weight']))}
+            """
     return para
