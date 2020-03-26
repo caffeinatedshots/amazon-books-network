@@ -293,7 +293,7 @@ def displayCliqueHoverNodeData(node_data, edge_data):
 @app.callback(
     Output('cyto-ego-network-1-mouseoverNodeData-output', 'children'),
     [Input('cyto-ego-network-1', 'mouseoverNodeData'),
-    Input('cyto-ego-network', 'mouseoverEdgeData')]
+    Input('cyto-ego-network-1', 'mouseoverEdgeData')]
 )
 def displayEgo1HoverNodeData(node_data, edge_data):
     if node_data or edge_data:
