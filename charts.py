@@ -456,7 +456,7 @@ def generate_graph(dataset:str='amazon', filters = None, nodelist = None):
 					high_quantile = filtered_df[column].quantile(high * 0.1)
 					filtered_df = filtered_df[filtered_df[column].between(low_quantile, high_quantile)]
 			
-			if nodelist:
+			if nodelist != None:
 				filtered_df = filtered_df[filtered_df['id'].isin(nodelist)]
 			
 			keep_nodes = filtered_df['id']
