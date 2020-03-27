@@ -24,7 +24,18 @@ content = [
                     )
                 ])
             ]),
-            html.Div(className = 'col-lg-6'),
+            html.Div(className = 'col-lg-6', children = [
+                html.Div(className = 'bar-chart-wp', children = [
+                    html.B("Nodes to use (Separate nodes with a comma without spacing)"),
+                    dcc.Input(
+                        id = "nodes_filter",
+                        type="text",
+                        value="",
+                        debounce=False,
+                        style = { 'width': '100%', 'height': '40px' },
+                    )
+                ])
+            ]),
             html.Div(className = 'col-lg-3', children = [
                 html.Div(className = 'bar-chart-wp', children = [
                     html.B("Node Colour"),
@@ -207,9 +218,10 @@ content = [
     Input("reviews_filter", "value"),
     Input("page_filter", "value"),
     Input("price_filter", "value"),
-    Input("nclique_filter", "value")],
+    Input("nclique_filter", "value"),
+    Input("nodes_filter", "value")],
 )
-def update_network_graphs(genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter, nclique_filter):
+def update_network_graphs(genre_filter, rating_filter, sales_rank_filter, reviews_filter, page_filter, price_filter, nclique_filter, nodes_filter):
     return [
         charts.plot_cyto_graph(params = locals()),
         charts.plot_cyto_nclique_graph(params = locals()),

@@ -429,7 +429,8 @@ def generate_graph(dataset:str='amazon', filters = None, nodelist = None):
 				'reviews_filter' : 'num_reviews',
 				'page_filter' : 'num_pages',
 				'price_filter' : 'price',
-				'nclique_filter' : 'nclique'
+				'nclique_filter' : 'nclique',
+				'nodes_filter': 'nodes'
 			}
 
 			filtered_df = node_df.copy()
@@ -456,6 +457,14 @@ def generate_graph(dataset:str='amazon', filters = None, nodelist = None):
 					high_quantile = filtered_df[column].quantile(high * 0.1)
 					filtered_df = filtered_df[filtered_df[column].between(low_quantile, high_quantile)]
 			
+				elif column in ['nodes']:
+					value = value[0]
+					if value and nodelist != None:
+						nodelist += value.split(',')
+					elif value and nodelist == None:
+						nodelist = value.split(',')
+
+
 			if nodelist != None:
 				filtered_df = filtered_df[filtered_df['id'].isin(nodelist)]
 			
