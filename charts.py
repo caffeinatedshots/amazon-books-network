@@ -639,9 +639,13 @@ def get_ego_network(G:nx.Graph, rank:int):
 	pos: Key of represents node connected to ego_node and the values are x-y coordinates.
 	"""
 	node_and_degree = G.degree()
-	(ego_node, _) = sorted(node_and_degree, key=itemgetter(1))[-1*rank]
+	try:
+		(ego_node, _) = sorted(node_and_degree, key=itemgetter(1))[-1*rank]
+		hub_ego = nx.ego_graph(G, ego_node)
+	except IndexError:
+		ego_node = None
+		hub_ego = nx.Graph()
 
-	hub_ego = nx.ego_graph(G, ego_node)
 	pos = nx.spring_layout(hub_ego)
 
 	return ego_node, hub_ego, pos
