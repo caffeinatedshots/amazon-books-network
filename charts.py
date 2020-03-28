@@ -459,9 +459,7 @@ def generate_graph(dataset:str='amazon', filters = None, nodelist = None):
 			
 				elif column in ['nodes']:
 					value = value[0]
-					if value and nodelist != None:
-						nodelist += value.split(',')
-					elif value and nodelist == None:
+					if value and nodelist == None:
 						nodelist = value.split(',')
 
 
@@ -521,7 +519,7 @@ def get_cliques_by_size(G:nx.Graph) -> Dict[str,List[int]]:
 	
 	return maximal_cliques_dict
 
-def generate_clique_metrics(G: nx.Graph) -> Dict[str,List[int]]:
+def generate_clique_metrics(G: nx.Graph, n_size) -> Dict[str,List[int]]:
 	maximal_cliques_dict = get_cliques_by_size(G)
 	
 	for k,v in maximal_cliques_dict.items():
@@ -535,7 +533,7 @@ def generate_clique_metrics(G: nx.Graph) -> Dict[str,List[int]]:
 			clique_info['avg_review'] = avg_review
 			clique_info['intracluster_strength'] = _generate_intracluster_strength(G, clique_info['nodes'])
 	
-	return maximal_cliques_dict
+	return maximal_cliques_dict[n_size+1]
 
 # Initialize NetworkX graph
 networkGraph = generate_graph()
@@ -835,9 +833,9 @@ def plot_cyto_nclique_graph(G = networkGraph, params = None):
 		G = generate_graph(filters = valid_params)
 
 	# Dictionary with information of each maximal clique based on value of n in n-clique
-	clique_graph_table_info = generate_clique_metrics(G)
+	clique_graph_table_info = generate_clique_metrics(G, nclique_value)
 
-	clique_nodes_list = [item['nodes'] for item in get_cliques_by_size(G)[nclique_value]]
+	clique_nodes_list = [item['nodes'] for item in clique_graph_table_info]
 	flatten_node_list = list(set([node for clique in clique_nodes_list for node in clique]))
 	G = generate_graph(filters = valid_params, nodelist = flatten_node_list)
 
