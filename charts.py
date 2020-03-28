@@ -784,6 +784,9 @@ def plot_cyto_graph(G = networkGraph, params = None):
 					'num_reviews' : int(G.nodes[node_id]['num_reviews']),
 					'num_pages' : int(G.nodes[node_id]['num_pages']),
 					'price' : float(G.nodes[node_id]['price']),
+					'degree_centrality': float(G.nodes[node_id]['degree_centrality']),
+					'betweenness_centrality': float(G.nodes[node_id]['betweenness_centrality']),
+					'closeness_centrality': float(G.nodes[node_id]['closeness_centrality']),
 					}
 				} for node_id in G.nodes()]
 	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in G.edges.data("weight")]
@@ -810,7 +813,10 @@ def plot_cyto_ego_graphs(G = networkGraph, params = None):
 						'num_reviews' : int(eg_graph.nodes[node_id]['num_reviews']),
 						'num_pages' : int(eg_graph.nodes[node_id]['num_pages']),
 						'price' : float(eg_graph.nodes[node_id]['price']),
-						'is_ego': eg_graph.nodes[node_id]['is_ego']
+						'is_ego': eg_graph.nodes[node_id]['is_ego'],
+						'degree_centrality': float(G.nodes[node_id]['degree_centrality']),
+						'betweenness_centrality': float(G.nodes[node_id]['betweenness_centrality']),
+						'closeness_centrality': float(G.nodes[node_id]['closeness_centrality']),
 						}
 					} for node_id in eg_graph.nodes()]
 		edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in eg_graph.edges.data('weight')]
@@ -844,6 +850,9 @@ def plot_cyto_nclique_graph(G = networkGraph, params = None):
 					'num_reviews' : int(G.nodes[node_id]['num_reviews']),
 					'num_pages' : int(G.nodes[node_id]['num_pages']),
 					'price' : float(G.nodes[node_id]['price']),
+					'degree_centrality': float(G.nodes[node_id]['degree_centrality']),
+					'betweenness_centrality': float(G.nodes[node_id]['betweenness_centrality']),
+					'closeness_centrality': float(G.nodes[node_id]['closeness_centrality']),
 					}
 				} for node_id in G.nodes()]
 	edges = [{'data' : {'source' : str(int(source)), 'target' : str(int(target)), 'weight' : np.log(weight)}} for source, target, weight in G.edges.data('weight')]

@@ -78,12 +78,15 @@ def _generate_node_edge_info(node_data, edge_data):
             No. of Reviews: {node_data['num_reviews']}
             No. of Pages: {node_data['num_pages']}
             Price: {node_data['price']}
+            Degree Centrality: {node_data['degree_centrality']}
+            Betweeness Centrality: {node_data['betweenness_centrality']}
+            Closeness Centrality: {node_data['closeness_centrality']}
             """
     if edge_data:
         para += f"""
             You recently hovered over the edge:
             Source: {edge_data['source']}
-            Targe: {edge_data['target']}
+            Target: {edge_data['target']}
             Frequency: {int(np.exp(edge_data['weight']))}
             """
     return para
