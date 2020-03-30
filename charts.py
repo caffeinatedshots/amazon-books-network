@@ -533,7 +533,7 @@ def generate_clique_metrics(G: nx.Graph, n_size) -> Dict[str,List[int]]:
 			clique_info['avg_review'] = avg_review
 			clique_info['intracluster_strength'] = _generate_intracluster_strength(G, clique_info['nodes'])
 	
-	return maximal_cliques_dict[n_size+1]
+	return maximal_cliques_dict[n_size]
 
 # Initialize NetworkX graph
 networkGraph = generate_graph()
